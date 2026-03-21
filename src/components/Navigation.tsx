@@ -12,6 +12,7 @@ const getIsDesktop = (): boolean => {
 }
 
 enum NavSections {
+  "COMPANIES" = "Companies",
   "PROJECTS" = "Projects",
   "SKILLS" = "Skills",
   "ABOUT" = "About",
@@ -20,24 +21,29 @@ enum NavSections {
 
 export function Navigation() {
   const isDesktop = getIsDesktop()
-  const [activeSection, setActiveSection] = useState<NavSections>(NavSections.PROJECTS)
+  const [activeSection, setActiveSection] = useState<NavSections>(NavSections.COMPANIES)
 
   useEffect(() => {
+    const sectionMap: Record<string, NavSections> = {
+      Companies: NavSections.COMPANIES,
+      Projects: NavSections.PROJECTS,
+      Skills: NavSections.SKILLS,
+      About: NavSections.ABOUT,
+    }
+
     const sectionObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            if (entry.target.id === "Projects") setActiveSection(NavSections.PROJECTS)
-            if (entry.target.id === "Skills") setActiveSection(NavSections.SKILLS)
-            if (entry.target.id === "About") setActiveSection(NavSections.ABOUT)
-            else setActiveSection(NavSections.PROJECTS)
+            const nextSection = sectionMap[entry.target.id]
+            if (nextSection) setActiveSection(nextSection)
           }
         })
       },
       { threshold: 0.5 }
     )
 
-    const sections = document.querySelectorAll("section[id]")
+    const sections = document.querySelectorAll("#Companies, #Projects, #Skills, #About")
     sections.forEach((section) => {
       sectionObserver.observe(section)
     })
@@ -55,6 +61,15 @@ export function Navigation() {
         </h1>
         <div className="w-fit">
           <div className="text-right lg:space-x-8 space-x-4 pl-5 text-[16px] flex items-center">
+            <Button
+              path="#Companies"
+              className={`font-code transition-colors hover:text-font_highlight ${
+                activeSection === NavSections.COMPANIES ? "text-font_highlight" : "text-font_light"
+              }`}
+              click={() => setActiveSection(NavSections.COMPANIES)}
+            >
+              {activeSection === NavSections.COMPANIES ? `< Companies />` : `Companies`}
+            </Button>
             <Button
               path="#Projects"
               className={`font-code transition-colors hover:text-font_highlight ${

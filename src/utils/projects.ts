@@ -15,6 +15,24 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    website: "https://simplifiedpdf.com",
+    github: null,
+    name: "<SimplifiedPDF />",
+    image: "/simplifiedpdf.png",
+    about:
+      "SimplifiedPDF is a browser-based PDF editor for adding text, filling forms, and signing documents without signups, subscriptions, or server uploads. It is built to keep files on-device while still feeling fast and polished.",
+    stack: [SiNextdotjs, SiTypescript],
+  },
+  {
+    website: "https://simplifiedqr.com",
+    github: null,
+    name: "<SimplifiedQR />",
+    image: "/simplifiedqr.png",
+    about:
+      "SimplifiedQR is a private QR generator for URLs, WiFi, contact cards, SMS, email, and plain text with free PNG and SVG exports. It focuses on a simple flow, fast generation, and keeping user data in the browser.",
+    stack: [SiNextdotjs, SiTypescript],
+  },
+  {
     website: "https://doriracers.com",
     github: null,
     name: "<Doriracers />",

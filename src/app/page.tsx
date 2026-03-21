@@ -1,6 +1,7 @@
 import { Navigation } from "@/components/Navigation"
 import { Content } from "@/components/Content"
 import { BannerSection } from "@/components/BannerSection"
+import { Companies } from "@/components/Companies"
 import { Projects } from "@/components/Projects"
 import { Skills } from "@/components/Skills"
 import { About } from "@/components/About"
@@ -17,6 +18,7 @@ export default function Home() {
       </div>
       <div className="bg-background h-full w-full">
         <Content>
+          <Companies />
           <Projects />
           <Skills />
           <About />

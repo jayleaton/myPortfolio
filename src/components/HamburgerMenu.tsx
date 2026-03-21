@@ -24,6 +24,9 @@ export const HamburgerMenu = () => {
           <div className="w-3/4 mx-auto h-auto p-4 pb-8 rounded-xl z-40 bg-background text-font_light opacity-95">
             <FiX size={45} onClick={toggleMenu} className="hover:text-font_highlight hover:cursor-pointer" />
             <div className="w-full font-code gap-2 text-[18px] mx-auto flex flex-col justify-center items-center">
+              <Button path={"#Companies"} click={toggleMenu} className="hover:text-font_highlight">
+                Companies
+              </Button>
               <Button path={"#Projects"} click={toggleMenu} className="hover:text-font_highlight">
                 Projects
               </Button>
