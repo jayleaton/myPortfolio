@@ -48,90 +48,88 @@ export async function Companies() {
   ]
 
   return (
-    <div id="Companies" className="py-20 relative scroll-mt-24">
-      <div className="mb-12 flex flex-col items-center gap-6 text-center md:flex-row md:items-end md:justify-between md:text-left">
-        <div className="md:w-1/2">
-          <p className="mx-auto max-w-xl leading-relaxed text-font_main md:mx-0">
-            More places to watch what I am building, see what I am working on, and get in touch when you want to collaborate.
-          </p>
+    <section id="Companies" className="section-shell relative scroll-mt-28 py-20">
+      <div className="section-grid absolute inset-0 opacity-60" />
+      <div className="section-panel relative overflow-hidden rounded-[32px] border border-white/10 px-6 py-10 md:px-8 xl:px-10">
+        <div className="mb-12 flex flex-col gap-6 text-center md:flex-row md:items-end md:justify-between md:text-left">
+          <div className="md:w-1/2">
+            <p className="section-kicker">I build in public</p>
+            <p className="mt-4 mx-auto max-w-xl leading-relaxed text-font_main md:mx-0">
+              More places to watch what I am building, see what I am working on, and get in touch when you want to collaborate.
+            </p>
+          </div>
         </div>
-        <h2 className="text-center text-[35px] font-bold font-code leading-tight md:text-right md:text-[50px]">
-          Find Me <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-font_highlight to-blue-500">
-            Elsewhere
-          </span>
-        </h2>
-      </div>
 
-      <div className="flex flex-col gap-6">
-        {companies.map((company) => {
-          const Icon = company.icon
-          const CTAIcon = company.ctaIcon
-          return (
-            <div
-              key={company.name}
-              className={`group relative overflow-hidden rounded-2xl border ${company.border} bg-background_highlight/40 backdrop-blur-sm p-6 md:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-font_highlight/10`}
-            >
-              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-transparent via-font_highlight/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              <div className="flex flex-col gap-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
-                <div className="flex-1 min-w-0">
-                  <div className="mb-4 flex items-center justify-center gap-3 md:justify-start">
-                    <div className={`rounded-full border border-white/10 bg-white/5 p-3 ${company.accent}`}>
-                      <Icon size={22} />
+        <div className="flex flex-col gap-6">
+          {companies.map((company) => {
+            const Icon = company.icon
+            const CTAIcon = company.ctaIcon
+            return (
+              <div
+                key={company.name}
+                className={`group relative overflow-hidden rounded-[28px] border ${company.border} bg-slate-950/30 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.25)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-font_highlight/10 md:p-8`}
+              >
+                <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-transparent via-font_highlight/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="flex flex-col gap-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-4 flex items-center justify-center gap-3 md:justify-start">
+                      <div className={`rounded-full border border-white/10 bg-white/5 p-3 ${company.accent}`}>
+                        <Icon size={22} />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white transition-colors group-hover:text-font_highlight md:text-3xl font-code">
+                        {company.name}
+                      </h3>
                     </div>
-                    <h3 className="text-white text-2xl md:text-3xl font-code font-bold group-hover:text-font_highlight transition-colors">
-                      {company.name}
-                    </h3>
-                  </div>
-                  <p className="mx-auto max-w-2xl text-base leading-relaxed text-font_main md:mx-0 md:text-lg">
-                    {company.description}
-                  </p>
+                    <p className="mx-auto max-w-2xl text-base leading-relaxed text-font_main md:mx-0 md:text-lg">
+                      {company.description}
+                    </p>
 
-                  {company.videos && (
-                    <div className="mt-6 flex flex-nowrap justify-center gap-4 overflow-hidden md:justify-start">
-                      {company.videos.map((video, index) => (
-                        <Link
-                          key={video.id}
-                          href={`https://www.youtube.com/watch?v=${video.id}`}
-                          target="_blank"
-                          className={`group/video w-full max-w-[210px] min-w-0 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-red-400/40 ${getVideoVisibilityClass(index)}`}
-                        >
-                          <div className="relative">
-                            <img
-                              src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
-                              alt={video.title}
-                              className="h-auto w-full object-cover transition-transform duration-500 group-hover/video:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                            <div className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-code text-white">
-                              <FaYoutube className="text-red-400" />
-                              Latest video
+                    {company.videos && (
+                      <div className="mt-6 flex flex-nowrap justify-center gap-4 overflow-hidden md:justify-start">
+                        {company.videos.map((video, index) => (
+                          <Link
+                            key={video.id}
+                            href={`https://www.youtube.com/watch?v=${video.id}`}
+                            target="_blank"
+                            className={`group/video w-full max-w-[210px] min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-red-400/40 ${getVideoVisibilityClass(index)}`}
+                          >
+                            <div className="relative">
+                              <img
+                                src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
+                                alt={video.title}
+                                className="h-auto w-full object-cover transition-transform duration-500 group-hover/video:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                              <div className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-code text-white">
+                                <FaYoutube className="text-red-400" />
+                                Latest video
+                              </div>
                             </div>
-                          </div>
-                          <div className="p-4">
-                            <p className="line-clamp-2 text-sm leading-relaxed text-font_light">{video.title}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                            <div className="p-4">
+                              <p className="line-clamp-2 text-sm leading-relaxed text-font_light">{video.title}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                <Button
-                  path={company.href}
-                  target="_blank"
-                  className="self-center w-fit rounded-full border border-white/10 px-6 py-3 font-code text-base text-font_light transition-all hover:bg-white/5 hover:text-white md:self-auto md:text-lg"
-                >
-                  <span className="inline-flex items-center gap-3">
-                    <CTAIcon />
-                    {company.cta}
-                  </span>
-                </Button>
+                  <Button
+                    path={company.href}
+                    target="_blank"
+                    className="self-center w-fit rounded-full border border-white/10 px-6 py-3 font-code text-base text-font_light transition-all hover:bg-white/5 hover:text-white md:self-auto md:text-lg"
+                  >
+                    <span className="inline-flex items-center gap-3">
+                      <CTAIcon />
+                      {company.cta}
+                    </span>
+                  </Button>
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

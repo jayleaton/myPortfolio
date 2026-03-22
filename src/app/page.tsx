@@ -9,14 +9,14 @@ import { Footer } from "@/components/Footer"
 
 export default function Home() {
   return (
-    <>
-      <div className="bg-background_highlight top-0 w-full">
+    <div className="relative overflow-x-clip">
+      <div className="top-0 w-full">
         <Content>
           <Navigation />
           <BannerSection />
         </Content>
       </div>
-      <div className="bg-background h-full w-full">
+      <div className="h-full w-full pb-10">
         <Content>
           <Companies />
           <Projects />
@@ -25,6 +25,6 @@ export default function Home() {
           <Footer />
         </Content>
       </div>
-    </>
+    </div>
   )
 }

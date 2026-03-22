@@ -1,13 +1,17 @@
 export function Footer() {
   return (
-    <div className="md:space-y-5 m-auto py-20 font-console text-font_light md:text-[24px] text-center border-t border-white/5 mt-20">
-      <h3 className="tracking-wide">Let's build something amazing together.</h3>
-      <h3 className="font-light">
-        JJ Eaton -{" "}
-        <a className="underline hover:text-font_highlight transition-colors" href="mailto: jayleaton@gmail.com">
-          jayleaton@gmail.com
-        </a>{" "}
-      </h3>
-    </div>
+    <footer className="mt-12 py-20">
+      <div className="section-panel rounded-[32px] border border-white/10 px-6 py-10 text-center shadow-[0_30px_80px_rgba(2,6,23,0.25)] md:px-8">
+        <h3 className="font-console text-2xl tracking-wide text-font_light md:text-[28px]">
+          Let&apos;s build something durable and useful together.
+        </h3>
+        <p className="mt-4 font-interface text-font_main md:text-lg">
+          JJ Eaton{" "}
+          <a className="underline transition-colors hover:text-font_highlight" href="mailto: jayleaton@gmail.com">
+            jayleaton@gmail.com
+          </a>
+        </p>
+      </div>
+    </footer>
   )
 }
