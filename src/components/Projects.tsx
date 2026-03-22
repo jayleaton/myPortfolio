@@ -10,11 +10,11 @@ export function Projects() {
   const [counter, setCounter] = useState<number>(4)
   return (
     <div id="Projects" className="py-20 relative">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+      <div className="mb-12 flex flex-col items-center text-center md:flex-row md:items-end md:justify-between md:text-left">
         <div className="md:w-1/2">
            {/* Placeholder if needed */}
         </div>
-        <h2 className="text-[35px] md:text-[50px] font-bold font-code text-right leading-tight">
+        <h2 className="text-center text-[35px] font-bold font-code leading-tight md:text-right md:text-[50px]">
           Latest <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-font_highlight to-blue-500">
             Projects
@@ -30,7 +30,7 @@ export function Projects() {
                 key={project.name}
                 className="group relative h-full bg-background_highlight/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-font_highlight/10 flex flex-col"
               >
-                <div className="flex justify-between items-start mb-6">
+                <div className="mb-6 flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:justify-between md:text-left">
                   <h3 className="text-white text-2xl font-code font-bold group-hover:text-font_highlight transition-colors">
                     {project.name}
                   </h3>
@@ -63,7 +63,7 @@ export function Projects() {
                 </Link>
 
                 <div className="flex-grow">
-                  <p className="text-font_main text-base leading-relaxed mb-6">{project.about}</p>
+                  <p className="mb-6 text-center text-base leading-relaxed text-font_main md:text-left">{project.about}</p>
                 </div>
 
                 <div className="pt-4 border-t border-white/5">
