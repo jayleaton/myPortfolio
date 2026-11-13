@@ -12,7 +12,7 @@ version: 1
 project: jayleaton-portfolio
 # Railway workspace name or id. Empty: your only workspace (required when you
 # belong to more than one).
-workspace: ""
+workspace: "JJ Eaton's Projects"
 
 # How code reaches Railway. "" (the default): never through Railway's GitHub
 # integration. GitHub Actions deploy every environment by upload instead
@@ -82,6 +82,13 @@ email:
 #     public_url: https://app.example.com
 #     from_email: manual
 #     secrets: staged
+
+per_environment:
+  # Production answers on www.jayleaton.com (canonical, Open Graph and
+  # JSON-LD URLs come from PUBLIC_URL; the bare jayleaton.com redirects to
+  # it with a 308). Staging keeps its Railway domain.
+  production:
+    public_url: https://www.jayleaton.com
 
 # admin_bootstrap_email: you@example.com   # first admin, seeded by `admin migrate`
 
