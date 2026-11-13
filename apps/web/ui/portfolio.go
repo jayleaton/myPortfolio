@@ -224,7 +224,8 @@ type engineRow struct {
 
 // engineRows give each local AI project its headline metrics: every decode
 // rate it publishes, or else its first metric. With one metric the line
-// under the name says what was measured; with several it is the tagline.
+// under the name says what was measured and how; with several it is the
+// tagline.
 func engineRows(projects []apiclient.Project) []engineRow {
 	out := make([]engineRow, 0, len(projects))
 	for _, project := range projects {
@@ -238,7 +239,7 @@ func engineRows(projects []apiclient.Project) []engineRow {
 			row.Metrics = project.Metrics[:1]
 		}
 		if len(row.Metrics) == 1 {
-			row.Detail = shortLabel(row.Metrics[0].Label)
+			row.Detail = row.Metrics[0].Label
 		}
 		out = append(out, row)
 	}

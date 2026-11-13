@@ -503,7 +503,7 @@ func doorway(item navItem, behind string, more templ.Component) templ.Component 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span><span class=\"pf-door-arrow\" aria-hidden=\"true\">→</span></span> <span class=\"pf-door-fold pf-door-fold-figure\"><span><span class=\"pf-door-figure\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span><span class=\"pf-door-arrow\" aria-hidden=\"true\">→</span></span> <span class=\"pf-door-figure\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -511,14 +511,14 @@ func doorway(item navItem, behind string, more templ.Component) templ.Component 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</span></span></span> <span class=\"pf-door-fold pf-door-fold-text\"><span><span class=\"pf-door-text\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</span> <span class=\"pf-door-fold\"><span><span class=\"pf-door-text\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(behind)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 95, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 91, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {
@@ -539,7 +539,7 @@ func doorway(item navItem, behind string, more templ.Component) templ.Component 
 		var templ_7745c5c3_Var31 templ.SafeURL
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(item.Path))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 101, Col: 66}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 97, Col: 66}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
@@ -552,7 +552,7 @@ func doorway(item navItem, behind string, more templ.Component) templ.Component 
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(item.Page.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 101, Col: 114}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 97, Col: 114}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
@@ -601,7 +601,7 @@ func linkRows(rows []doorRow) templ.Component {
 			var templ_7745c5c3_Var34 templ.SafeURL
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(row.URL))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 113, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 109, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -614,7 +614,7 @@ func linkRows(rows []doorRow) templ.Component {
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(row.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 114, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 110, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -627,7 +627,7 @@ func linkRows(rows []doorRow) templ.Component {
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(row.Detail)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 115, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 111, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -681,7 +681,7 @@ func engineList(rows []engineRow) templ.Component {
 			var templ_7745c5c3_Var38 templ.SafeURL
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(projectHref(row.Project)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 125, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
@@ -694,7 +694,7 @@ func engineList(rows []engineRow) templ.Component {
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(row.Project.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 125, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -717,7 +717,7 @@ func engineList(rows []engineRow) templ.Component {
 					var templ_7745c5c3_Var40 templ.SafeURL
 					templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(metric.Source))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 133, Col: 46}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 46}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 					if templ_7745c5c3_Err != nil {
@@ -730,7 +730,7 @@ func engineList(rows []engineRow) templ.Component {
 					var templ_7745c5c3_Var41 string
 					templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.ResolveAttributeValue(metric.Label)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 133, Col: 100}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 100}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var41)
 					if templ_7745c5c3_Err != nil {
@@ -743,7 +743,7 @@ func engineList(rows []engineRow) templ.Component {
 					var templ_7745c5c3_Var42 string
 					templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(metricNumber(metric))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 133, Col: 125}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 125}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 					if templ_7745c5c3_Err != nil {
@@ -756,7 +756,7 @@ func engineList(rows []engineRow) templ.Component {
 					var templ_7745c5c3_Var43 string
 					templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(metricUnit(metric))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 133, Col: 168}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 168}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 					if templ_7745c5c3_Err != nil {
@@ -769,7 +769,7 @@ func engineList(rows []engineRow) templ.Component {
 					var templ_7745c5c3_Var44 string
 					templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(metric.Label)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 133, Col: 186}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 129, Col: 186}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 					if templ_7745c5c3_Err != nil {
@@ -788,7 +788,7 @@ func engineList(rows []engineRow) templ.Component {
 					var templ_7745c5c3_Var45 string
 					templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(metricUnit(row.Metrics[0]))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 136, Col: 78}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 132, Col: 78}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 					if templ_7745c5c3_Err != nil {
@@ -811,7 +811,7 @@ func engineList(rows []engineRow) templ.Component {
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(row.Detail)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 141, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 137, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -866,7 +866,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var48 templ.SafeURL
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(link.URL))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 154, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 150, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -879,7 +879,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(link.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 155, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 151, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
@@ -914,7 +914,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.ResolveAttributeValue("$followers.toLocaleString('en-US') + ' " + page.Portfolio.Site.Pages.Socials.Teaser + " · live'")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 156, Col: 228}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 152, Col: 228}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var52)
 			if templ_7745c5c3_Err != nil {
@@ -927,7 +927,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(groupDigits(page.Followers.Count))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 156, Col: 266}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 152, Col: 266}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {
@@ -940,7 +940,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var54 string
 			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(page.Portfolio.Site.Pages.Socials.Teaser)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 156, Col: 311}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 152, Col: 311}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 			if templ_7745c5c3_Err != nil {
@@ -975,7 +975,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var57 string
 			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(link.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 157, Col: 134}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 153, Col: 134}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 			if templ_7745c5c3_Err != nil {
@@ -999,7 +999,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 				var templ_7745c5c3_Var58 templ.SafeURL
 				templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(watchURL(video)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 164, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 160, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 				if templ_7745c5c3_Err != nil {
@@ -1012,7 +1012,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 				var templ_7745c5c3_Var59 string
 				templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(link.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 165, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 161, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 				if templ_7745c5c3_Err != nil {
@@ -1025,7 +1025,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 				var templ_7745c5c3_Var60 string
 				templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(video.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 166, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 162, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 				if templ_7745c5c3_Err != nil {
@@ -1043,7 +1043,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 				var templ_7745c5c3_Var61 templ.SafeURL
 				templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(link.URL))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 169, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 165, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 				if templ_7745c5c3_Err != nil {
@@ -1056,7 +1056,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 				var templ_7745c5c3_Var62 string
 				templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(link.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 170, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 166, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 				if templ_7745c5c3_Err != nil {
@@ -1069,7 +1069,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 				var templ_7745c5c3_Var63 string
 				templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(link.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 171, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 167, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 				if templ_7745c5c3_Err != nil {
@@ -1093,7 +1093,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var64 templ.SafeURL
 			templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(row.URL))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 178, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 174, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 			if templ_7745c5c3_Err != nil {
@@ -1106,7 +1106,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var65 string
 			templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(row.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 179, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 175, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 			if templ_7745c5c3_Err != nil {
@@ -1119,7 +1119,7 @@ func profileList(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var66 string
 			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(row.Detail)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 180, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 176, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 			if templ_7745c5c3_Err != nil {
@@ -1170,7 +1170,7 @@ func localHero(page apiclient.PortfolioPage, projects []apiclient.Project) templ
 		var templ_7745c5c3_Var68 string
 		templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(item.Number)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 195, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 191, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 		if templ_7745c5c3_Err != nil {
@@ -1183,7 +1183,7 @@ func localHero(page apiclient.PortfolioPage, projects []apiclient.Project) templ
 		var templ_7745c5c3_Var69 string
 		templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 195, Col: 82}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 191, Col: 82}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 		if templ_7745c5c3_Err != nil {
@@ -1267,7 +1267,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var71 string
 			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.ResolveAttributeValue(boolAttr(index == 0))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 221, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 217, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var71)
 			if templ_7745c5c3_Err != nil {
@@ -1280,7 +1280,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var72 string
 			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Rate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 223, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 219, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var72)
 			if templ_7745c5c3_Err != nil {
@@ -1293,7 +1293,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var73 string
 			templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 224, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 220, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var73)
 			if templ_7745c5c3_Err != nil {
@@ -1306,7 +1306,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var74 string
 			templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 225, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 221, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var74)
 			if templ_7745c5c3_Err != nil {
@@ -1319,7 +1319,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var75 string
 			templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Source)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 226, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 222, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var75)
 			if templ_7745c5c3_Err != nil {
@@ -1332,7 +1332,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var76 string
 			templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(item.Rate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 228, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 224, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 			if templ_7745c5c3_Err != nil {
@@ -1345,7 +1345,7 @@ func runPanel(runs []run) templ.Component {
 			var templ_7745c5c3_Var77 string
 			templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 229, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 225, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
 			if templ_7745c5c3_Err != nil {
@@ -1363,7 +1363,7 @@ func runPanel(runs []run) templ.Component {
 		var templ_7745c5c3_Var78 string
 		templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(runs[0].Rate)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 234, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 230, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
 		if templ_7745c5c3_Err != nil {
@@ -1376,7 +1376,7 @@ func runPanel(runs []run) templ.Component {
 		var templ_7745c5c3_Var79 string
 		templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(rateUnit)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 234, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 230, Col: 102}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 		if templ_7745c5c3_Err != nil {
@@ -1389,7 +1389,7 @@ func runPanel(runs []run) templ.Component {
 		var templ_7745c5c3_Var80 string
 		templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(runs[0].Label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 240, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 236, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 		if templ_7745c5c3_Err != nil {
@@ -1402,7 +1402,7 @@ func runPanel(runs []run) templ.Component {
 		var templ_7745c5c3_Var81 templ.SafeURL
 		templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(runs[0].Source))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 241, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_hero.templ`, Line: 237, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 		if templ_7745c5c3_Err != nil {

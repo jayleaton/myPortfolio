@@ -84,14 +84,10 @@ templ doorway(item navItem, behind string, more templ.Component) {
 	<article class="pf-door" data-component="doorway">
 		<a class="pf-door-link" href={ templ.SafeURL(item.Path) }>
 			<span class="pf-door-top pf-mono"><span><strong>{ item.Page.Number }</strong> { item.Page.Name }</span><span class="pf-door-arrow" aria-hidden="true">→</span></span>
-			<span class="pf-door-fold pf-door-fold-figure">
-				<span>
-					<span class="pf-door-figure">
-						{ children... }
-					</span>
-				</span>
+			<span class="pf-door-figure">
+				{ children... }
 			</span>
-			<span class="pf-door-fold pf-door-fold-text">
+			<span class="pf-door-fold">
 				<span><span class="pf-door-text">{ behind }</span></span>
 			</span>
 		</a>
