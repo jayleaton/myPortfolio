@@ -31,16 +31,24 @@ type Site struct {
 	Description string
 	// ShareTitle and ShareText are the X / Open Graph card's text.
 	ShareTitle, ShareText string
-	// Kicker sits above the headline; Terminal is the hero's boot log.
-	Kicker   string
-	Terminal []string
+	// Kicker sits above the headline.
+	Kicker string
+	// Hardware is the bottom plate of the hero's stack figure.
+	Hardware Hardware
 	Sections Sections
 	Footer   string
 }
 
+// Hardware is the machine the published numbers were measured on: its
+// name, the memory and chip of one unit, the units and the link between them.
+type Hardware struct {
+	Name, Memory, Chip, Link string
+	Units                    []string
+}
+
 // Sections are the labels of the page's sections, in page order.
 type Sections struct {
-	Work, Network, Videos, Uplinks, Archive Section
+	Work, Receipts, Network, Videos, Uplinks, Archive Section
 }
 
 // Section is one section's anchor, number, title and one-line intro.
@@ -59,21 +67,21 @@ type Project struct {
 	URL         string `json:"url"`
 	Repo        string `json:"repo,omitempty"`
 	Image       string `json:"image,omitempty"`
-	// Visual picks the generated engine visual a featured card draws when
-	// it has no Image (one of the Visual* constants).
+	// Visual is the kind of work (one of the Visual* constants). It places
+	// a featured project on a layer of the hero's stack figure.
 	Visual     string   `json:"visual,omitempty"`
 	Tags       []string `json:"tags"`
 	Highlights []string `json:"highlights,omitempty"`
 	Metrics    []Metric `json:"metrics,omitempty"`
 }
 
-// The generated visuals a featured card can draw.
+// The kinds of featured work.
 const (
-	VisualTensor = "tensor" // a tensor grid folding along its diagonal
-	VisualRack   = "rack"   // a GPU rack with throughput bars
-	VisualRouter = "router" // a router fanning requests out to models
-	VisualRadar  = "radar"  // a scan sweep with findings
-	VisualFrame  = "frame"  // a camera frame around a wireframe car
+	VisualTensor = "tensor" // an inference engine: the stack's engine layer
+	VisualRack   = "rack"   // GPU recipes: the recipes layer
+	VisualRouter = "router" // model routing: the router layer
+	VisualRadar  = "radar"  // a product (security)
+	VisualFrame  = "frame"  // a product (imaging)
 )
 
 // Metric is a published, sourced number (never a live one).

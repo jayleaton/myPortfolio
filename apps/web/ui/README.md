@@ -9,10 +9,10 @@ here: re-theme in `packages/uikit/theme.css`.
 |---|---|
 | `ui` | `ui.New(deps)` (`Routes(mux)` / `Handler()`), the `Auth`/`Users` interfaces, handlers, auth, dashboard and Account pages |
 | `ui/view` | the layout (`Layout` for public pages, `SectionLayout(title, Section…)` to highlight the signed-in nav: `uikit.Page` + `uikit.AppShell` with Dashboard/Account, theme toggle, language menu, sign out), the layout state, and app-local components uikit lacks (`Avatar`, `CardFooter`, `AltLink`) |
-| `portfolio*.go`, `portfolio_*.templ` | the public portfolio at `/`: one templ file per section, decorative visuals in `portfolio_visuals.templ`, styles in `styles/portfolio.css` |
+| `portfolio*.go`, `portfolio_*.templ` | the public portfolio at `/` (design "Measured"): one templ file per area, the stack figure, bars and odometer in `portfolio_visuals.templ`, view helpers in `portfolio.go`, tokens and styles in `styles/portfolio.css`, the decode replay, odometer and menu in `static/portfolio.js` |
 | `ui/i18n` | `messages/{en,ja}.json`, locale negotiation, `i18n.T(ctx, key)` |
 | `ui/routes` | the UI's own action endpoints (logout, locale, live stream, settings, delete, static); pages use `config.AppRoutes` |
-| `ui/static` | embedded `app.css` (generated), pinned `datastar-1.0.4.js`, favicon |
+| `ui/static` | embedded `app.css` (generated), pinned `datastar-1.0.4.js`, favicon, `portfolio.js`, `og.png`, `img/` and `fonts/` (Archivo and JetBrains Mono, Latin subsets, with their SIL OFL texts) |
 | `ui/cmd/preview` | all pages on `0.0.0.0:3001` over an in-memory backend (`backend.go`) with the auth and service rules |
 
 ## Commands (for the Makefile)

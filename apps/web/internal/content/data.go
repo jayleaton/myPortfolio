@@ -4,7 +4,7 @@ package content
 // page renders from these values, in this order.
 var portfolio = Portfolio{
 	Name:     "JJ Eaton",
-	Headline: "I build inference engines, routers and GPU recipes.",
+	Headline: "I build inference engines, local AI routing, and GPU recipes that turn hardware into something useful.",
 	Bio:      "I build inference engines, local AI routing, and GPU recipes that turn hardware into something useful. I contribute to TensorFold, build LocalRouter, and ship products like Lockpick and AutoVisuals. I care about measured performance and software people can use.",
 	XHandle:  "jayleaton",
 	YouTube: Channel{
@@ -232,27 +232,27 @@ var portfolio = Portfolio{
 		},
 	},
 	Site: Site{
-		Title:       "JJ Eaton — inference engines, routers and GPU recipes",
+		Title:       "JJ Eaton · Inference engines, local AI routing, GPU recipes",
 		Description: "JJ Eaton builds inference engines, local AI routing and GPU recipes: TensorFold, LocalRouter, DGX Spark recipes for DeepSeek, GLM and Qwen, Lockpick and AutoVisuals.",
-		ShareTitle:  "JJ Eaton // engines, routers, GPU recipes",
+		ShareTitle:  "JJ Eaton: inference engines, local AI routing, GPU recipes",
 		ShareText:   "Inference engines, local AI routing and DGX Spark recipes, measured on real hardware.",
-		Kicker:      "systems engineer · inference · local AI",
-		Terminal: []string{
-			"$ jj --status --all",
-			"[ok] tensorfold    cuda.comm      merged upstream",
-			"[ok] dgx-spark     qwen3.8 · mtp  79.9 tok/s",
-			"[ok] localrouter   voice loop     ~0.9 s to audio",
-			"[ok] lockpick      recheck        armed",
-			"[ok] autovisuals   preview        rendering",
+		Kicker:      "Inference engines / Local AI routing / GPU recipes",
+		Hardware: Hardware{
+			Name:   "NVIDIA DGX Spark",
+			Memory: "128 GB",
+			Chip:   "GB10",
+			Link:   "CX7 · 200 Gb/s",
+			Units:  []string{"Spark A", "Spark B"},
 		},
 		Sections: Sections{
-			Work:    Section{ID: "work", Number: "01", Title: "The engine room", Intro: "What I am building and contributing to right now. Every number links to where it was measured."},
-			Network: Section{ID: "network", Number: "02", Title: "Edge nodes", Intro: "Products and companies I run. Small, fast, useful."},
-			Videos:  Section{ID: "videos", Number: "03", Title: "Broadcast", Intro: "I build in public on Build Things. The latest uploads, fetched live."},
-			Uplinks: Section{ID: "uplinks", Number: "04", Title: "Uplinks", Intro: "Follow along, hire me, or buy me a coffee."},
-			Archive: Section{ID: "archive", Number: "05", Title: "Cold storage", Intro: "Earlier work, kept for the record."},
+			Work:     Section{ID: "work", Number: "01", Title: "Featured work", Intro: "What I am building and contributing to right now. Every number links to its receipt."},
+			Receipts: Section{ID: "numbers", Number: "02", Title: "Receipts", Intro: "Every published number on this page, with what was measured and where to check it."},
+			Network:  Section{ID: "network", Number: "03", Title: "Network", Intro: "Products and companies I run. Small, fast, useful."},
+			Videos:   Section{ID: "videos", Number: "04", Title: "Build Things", Intro: "I build in public on YouTube. The latest uploads, fetched live."},
+			Uplinks:  Section{ID: "uplinks", Number: "05", Title: "Contact", Intro: "Follow along, hire me, or buy me a coffee."},
+			Archive:  Section{ID: "archive", Number: "06", Title: "Archive", Intro: "Earlier work, kept for the record."},
 		},
-		Footer: "Served by one static Go binary: templ, Datastar and a few hundred lines of CSS.",
+		Footer: "Served by one static Go binary: Go, templ and Datastar.",
 	},
 	// FallbackVideos show until the first successful channel fetch.
 	FallbackVideos: []Video{

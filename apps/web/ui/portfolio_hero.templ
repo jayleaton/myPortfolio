@@ -1,63 +1,75 @@
 package ui
 
-// The hero: name, headline, bio, calls to action, the terminal status block
-// and the architecture diagram (diagramSVG in portfolio_visuals.templ).
+// The hero: kicker, the headline and bio as decode tokens, calls to action,
+// the run panel (replays the text at a published decode rate) and the stack
+// figure (stackFigure in portfolio_visuals.templ).
 
 import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
 
 templ hero(page apiclient.PortfolioPage) {
 	{{ site := page.Portfolio.Site }}
+	{{ runs := decodeRuns(page.Portfolio.Featured) }}
 	<section class="pf-hero" data-section="hero" aria-labelledby="hero-title">
 		<div class="pf-wrap pf-hero-grid">
-			<div class="pf-hero-copy">
-				<p class="pf-kicker"><span class="pf-led"></span>{ site.Kicker }</p>
-				<h1 id="hero-title" class="pf-display">
-					<span class="pf-display-name">{ page.Portfolio.Name }</span>
-					<span class="pf-display-line">{ page.Portfolio.Headline }</span>
+			<div class="pf-hero-copy" data-hero>
+				<p class="pf-kicker pf-mono"><strong>{ page.Portfolio.Name }</strong><span>{ site.Kicker }</span></p>
+				<h1 id="hero-title" class="pf-display" data-decode>
+					@tokenSpans(page.Portfolio.Headline)
 				</h1>
-				<p class="pf-lede">{ page.Portfolio.Bio }</p>
+				<p class="pf-lede" data-decode>
+					@tokenSpans(lede(page.Portfolio.Headline, page.Portfolio.Bio))
+				</p>
 				<div class="pf-cta">
-					<a class="pf-button pf-button-primary" href="#work">Inspect the engine room <span aria-hidden="true">↓</span></a>
-					if xLink := socialFor(page.Portfolio.Socials, "X"); xLink.URL != "" {
-						<a class="pf-button" href={ templ.SafeURL(xLink.URL) } rel="me noopener" target="_blank">
-							Follow on X
-							<span class="pf-count-chip hidden" data-class:hidden="!$followersKnown" aria-hidden="true"><span data-count data-attr:data-target="$followers">{ groupDigits(page.Followers.Count) }</span></span>
-						</a>
+					<a class="pf-button pf-button-primary" href={ templ.SafeURL("#" + site.Sections.Work.ID) }>See the work <span aria-hidden="true">↓</span></a>
+					if github := socialFor(page.Portfolio.Socials, "GitHub"); github.URL != "" {
+						<a class="pf-button" href={ templ.SafeURL(github.URL) } target="_blank" rel="me noopener">GitHub <span aria-hidden="true">↗</span></a>
 					}
 				</div>
-				@terminal(site.Terminal)
+				if len(runs) > 0 {
+					@runPanel(runs)
+				}
 			</div>
-			<figure class="pf-diagram" data-component="diagram" aria-label="Architecture diagram: JJ at the core, routing to each featured project, fed live by X and YouTube">
-				@diagramSVG(wideDiagram(page), page, "pf-diagram-wide")
-				@diagramSVG(tallDiagram(page), page, "pf-diagram-tall")
-				@telemetryBar()
-			</figure>
+			@stackFigure(page, runs)
 		</div>
 	</section>
 }
 
-templ terminal(lines []string) {
-	<div class="pf-terminal" data-component="terminal" aria-label="Status of current projects">
-		<div class="pf-terminal-bar" aria-hidden="true"><span></span><span></span><span></span><em>~/jj — zsh</em></div>
-		<ol class="pf-terminal-body">
-			for index, line := range lines {
-				<li class={ "pf-terminal-line", templ.KV("pf-terminal-cmd", index == 0) }>{ line }</li>
+// runPanel replays the hero text at a published decode rate. The tabs carry
+// each run's data; portfolio.js runs the decode and fills the readout. With
+// no script the panel still states the first run and links its receipt.
+templ runPanel(runs []run) {
+	<div class="pf-run" data-component="run-panel" role="group" aria-label="Replay this text at a published decode rate">
+		<div class="pf-run-tabs">
+			for index, item := range runs {
+				<button
+					class="pf-run-tab"
+					type="button"
+					aria-pressed={ boolAttr(index == 0) }
+					data-run
+					data-rate={ item.Rate }
+					data-name={ item.Name }
+					data-label={ item.Label }
+					data-source={ item.Source }
+				>
+					<span class="pf-run-rate">{ item.Rate }</span>
+					<span class="pf-run-name">{ item.Name }</span>
+				</button>
 			}
-			<li class="pf-terminal-line pf-terminal-cmd" aria-hidden="true">$ <span class="pf-caret"></span></li>
-		</ol>
+		</div>
+		<dl class="pf-readout">
+			<div><dt class="pf-mono">Rate</dt><dd><span data-run-rate>{ runs[0].Rate }</span> <small>{ rateUnit }</small></dd></div>
+			<div><dt class="pf-mono">Tokens</dt><dd><span data-run-done>0</span><small>/<span data-run-total>0</span></small></dd></div>
+			<div><dt class="pf-mono">Elapsed</dt><dd><span data-run-time>0.00</span> <small>s</small></dd></div>
+		</dl>
+		<div class="pf-run-foot">
+			<p class="pf-run-note">
+				<span data-run-label>{ runs[0].Label }</span>. This text replays at the published rate. It is not live inference.
+				<a data-run-source href={ templ.SafeURL(runs[0].Source) } target="_blank" rel="noopener">Receipt&nbsp;↗</a>
+			</p>
+			<div class="pf-run-actions">
+				<button class="pf-chip-button" type="button" data-replay>Replay</button>
+				<button class="pf-chip-button" type="button" data-show-tokens aria-pressed="false">Tokens</button>
+			</div>
+		</div>
 	</div>
-}
-
-// telemetryBar is decoration: published numbers the script jitters around.
-templ telemetryBar() {
-	<figcaption class="pf-telemetry" data-component="telemetry" aria-hidden="true">
-		for _, readout := range heroTelemetry {
-			<span class="pf-readout">
-				<em>{ readout.Label }</em>
-				<strong data-telemetry data-base={ readout.Base } data-jitter={ readout.Jitter } data-decimals={ readout.Decimals }>{ readout.Value }</strong>
-				<small>{ readout.Unit }</small>
-			</span>
-		}
-		<span class="pf-readout-note">published benchmarks · jitter is decoration</span>
-	</figcaption>
 }

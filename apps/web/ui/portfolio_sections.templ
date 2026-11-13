@@ -1,7 +1,7 @@
 package ui
 
-// Sections 02–05: the network (backlinks), the latest YouTube videos
-// (fetched and cached server-side), uplinks with the live X follower count
+// Sections 03 to 06: the network (backlinks), the latest YouTube videos
+// (fetched and cached server-side), contact with the live X follower count
 // (Datastar signals followers / followersKnown, streamed from
 // routes.LiveFollowers), and the archive.
 
@@ -12,17 +12,14 @@ import (
 
 templ networkSection(page apiclient.PortfolioPage) {
 	{{ section := page.Portfolio.Site.Sections.Network }}
-	<section id={ section.ID } class="pf-section pf-section-alt" data-section="network" aria-labelledby={ section.ID + "-title" }>
+	<section id={ section.ID } class="pf-section" data-section="network" aria-labelledby={ section.ID + "-title" }>
 		<div class="pf-wrap">
 			@sectionHead(section)
 			<ul class="pf-network">
-				for index, link := range page.Portfolio.Network {
-					<li data-reveal>
+				for _, link := range page.Portfolio.Network {
+					<li>
 						<a class="pf-net" data-component="network-card" href={ templ.SafeURL(link.URL) } target="_blank" rel="noopener">
-							<span class="pf-net-head"><span class="pf-led"></span><code>{ "node-" + pad2(index) }</code><span class="pf-net-host">{ host(link.URL) }</span></span>
-							if link.Image != "" {
-								<img class="pf-net-img" src={ static.Image(link.Image) } alt="" loading="lazy" decoding="async"/>
-							}
+							<span class="pf-net-host pf-mono">{ host(link.URL) }</span>
 							<strong class="pf-net-name">{ link.Name } <span aria-hidden="true">↗</span></strong>
 							<span class="pf-net-text">{ link.Description }</span>
 						</a>
@@ -39,13 +36,13 @@ templ videosSection(page apiclient.PortfolioPage) {
 		<div class="pf-wrap">
 			@sectionHead(section)
 			<ul class="pf-videos">
-				for _, video := range page.Videos.Items {
-					<li data-reveal>
+				for index, video := range page.Videos.Items {
+					<li>
 						<a class="pf-video" data-component="video-card" href={ templ.SafeURL(watchURL(video)) } target="_blank" rel="noopener">
 							<span class="pf-video-frame">
 								<img src={ thumbnail(video) } alt="" loading="lazy" decoding="async" width="480" height="360"/>
-								<span class="pf-video-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></span>
 							</span>
+							<span class="pf-video-number pf-mono" aria-hidden="true">{ pad2(index) }</span>
 							<span class="pf-video-title">{ video.Title }</span>
 						</a>
 					</li>
@@ -61,29 +58,34 @@ templ videosSection(page apiclient.PortfolioPage) {
 templ uplinksSection(page apiclient.PortfolioPage) {
 	{{ section := page.Portfolio.Site.Sections.Uplinks }}
 	{{ xLink := socialFor(page.Portfolio.Socials, "X") }}
-	<section id={ section.ID } class="pf-section pf-section-alt" data-section="uplinks" aria-labelledby={ section.ID + "-title" }>
+	<section id={ section.ID } class="pf-section" data-section="uplinks" aria-labelledby={ section.ID + "-title" }>
 		<div class="pf-wrap">
 			@sectionHead(section)
 			<div class="pf-uplinks">
 				if xLink.URL != "" {
-					<a class="pf-xcard" data-component="x-card" href={ templ.SafeURL(xLink.URL) } target="_blank" rel="me noopener" data-reveal>
-						<span class="pf-xcard-head"><span class="pf-led pf-led-live"></span>{ "live · x.com/" + page.Portfolio.XHandle }</span>
-						<span class="pf-xcard-count hidden" data-class:hidden="!$followersKnown">
-							<strong data-count data-attr:data-target="$followers">{ groupDigits(page.Followers.Count) }</strong>
-							<span>followers</span>
+					<a class="pf-xcard" data-component="x-card" href={ templ.SafeURL(xLink.URL) } target="_blank" rel="me noopener">
+						<span class="pf-xcard-head pf-mono">
+							@xGlyph()
+							{ "x.com/" + page.Portfolio.XHandle }
+							<span class={ "pf-xcard-live", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown"><span class="pf-live" aria-hidden="true"></span>live</span>
 						</span>
-						<span class="pf-xcard-count" data-class:hidden="$followersKnown"><strong>{ "@" + page.Portfolio.XHandle }</strong></span>
+						<span class={ "pf-xcard-count", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown">
+							@odometer(page.Followers.Count, "followers")
+							<span class="pf-xcard-unit pf-mono" aria-hidden="true">followers</span>
+						</span>
+						<span class={ "pf-xcard-count", templ.KV("hidden", page.Followers.Known) } data-class:hidden="$followersKnown">{ "@" + page.Portfolio.XHandle }</span>
 						<span class="pf-xcard-text">{ xLink.Description }</span>
-						<span class="pf-button pf-button-primary">Follow <span aria-hidden="true">↗</span></span>
+						<span class="pf-button pf-button-primary">Follow on X <span aria-hidden="true">↗</span></span>
 					</a>
 				}
 				<ul class="pf-socials">
 					for _, link := range otherSocials(page.Portfolio.Socials) {
-						<li data-reveal>
+						<li>
 							<a href={ templ.SafeURL(link.URL) } target="_blank" rel="me noopener" class="pf-social" data-component="social-link">
 								<strong>{ link.Name }</strong>
-								<code>{ host(link.URL) }</code>
-								<span>{ link.Description }</span>
+								<span class="pf-social-host pf-mono">{ host(link.URL) }</span>
+								<span class="pf-social-text">{ link.Description }</span>
+								<span class="pf-social-arrow" aria-hidden="true">↗</span>
 							</a>
 						</li>
 					}
@@ -100,22 +102,22 @@ templ archiveSection(page apiclient.PortfolioPage) {
 			@sectionHead(section)
 			<ul class="pf-archive">
 				for _, project := range page.Portfolio.Archive {
-					<li class="pf-archived" data-component="archive-item" data-reveal>
+					<li class="pf-archived" data-component="archive-item">
 						if project.Image != "" {
-							<img src={ static.Image(project.Image) } alt={ project.Name + " screenshot" } loading="lazy" decoding="async"/>
+							<img src={ static.Image(project.Image) } alt={ project.Name + " screenshot" } loading="lazy" decoding="async" width="320" height="240"/>
 						}
-						<div>
+						<div class="pf-archived-copy">
 							<h3>{ project.Name }</h3>
-							<p class="pf-archived-role">{ project.Role }</p>
-							<p>{ project.Description }</p>
+							<p class="pf-archived-role pf-mono">{ project.Role }</p>
+							<p class="pf-archived-text">{ project.Description }</p>
 							@tags(project.Tags)
-							<p class="pf-card-links">
-								<a href={ templ.SafeURL(project.URL) } target="_blank" rel="noopener">{ host(project.URL) } ↗</a>
-								if project.Repo != "" && project.Repo != project.URL {
-									<a href={ templ.SafeURL(project.Repo) } target="_blank" rel="noopener">source ↗</a>
-								}
-							</p>
 						</div>
+						<p class="pf-archived-links pf-mono">
+							<a href={ templ.SafeURL(project.URL) } target="_blank" rel="noopener">{ host(project.URL) } ↗</a>
+							if project.Repo != "" && project.Repo != project.URL {
+								<a href={ templ.SafeURL(project.Repo) } target="_blank" rel="noopener">Source ↗</a>
+							}
+						</p>
 					</li>
 				}
 			</ul>

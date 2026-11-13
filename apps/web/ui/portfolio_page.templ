@@ -1,8 +1,10 @@
 package ui
 
-// The portfolio page shell: document head (SEO, share cards), header,
-// footer and the shared section heading. Each section lives in its own
-// portfolio_<section>.templ; decorative visuals in portfolio_visuals.templ.
+// The portfolio page shell ("Measured"): document head (SEO, share cards,
+// font preload), the top bar with the live X chip and both navs, the footer
+// and the shared section heading. Each section lives in its own
+// portfolio_<section>.templ; the stack figure, bars and odometer in
+// portfolio_visuals.templ.
 // Styling hooks: every element has a stable pf-* class or data-section /
 // data-component attribute; styles live in apps/web/ui/styles/portfolio.css.
 
@@ -14,9 +16,10 @@ import (
 	"github.com/jayleaton/myPortfolio/packages/uikit"
 )
 
-// PortfolioPage is "/": the hero diagram, featured work, the network,
-// latest videos, uplinks with the live X count, the archive and the footer.
-// Every word comes from apps/web/internal/content.
+// PortfolioPage is "/": the decode hero and stack figure, featured work,
+// the receipts ledger, the network, latest videos, contact with the live X
+// count, the archive and the footer. Every word comes from
+// apps/web/internal/content.
 templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
 	{{ site := page.Portfolio.Site }}
 	@uikit.Page(uikit.Document{
@@ -40,6 +43,7 @@ templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
 			<main id="main" tabindex="-1">
 				@hero(page)
 				@workSection(page)
+				@receiptsSection(page)
 				@networkSection(page)
 				@videosSection(page)
 				@uplinksSection(page)
@@ -50,12 +54,20 @@ templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
 	}
 }
 
-// portfolioHead is the share-card and search metadata.
+// portfolioHead is the share-card and search metadata, the display font's
+// preload and the pre-paint flags: pf-js lets CSS hold entrance states only
+// when the script can release them, pf-decode ghosts the hero text for the
+// decode (never under prefers-reduced-motion).
 templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
 	{{ site := page.Portfolio.Site }}
+	<link rel="preload" href={ static.URL(static.DisplayFontFile) } as="font" type="font/woff2" crossorigin/>
+	<script nonce={ templ.GetNonce(ctx) }>
+		document.documentElement.classList.add('pf-js');
+		if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('pf-decode');
+	</script>
 	<link rel="canonical" href={ meta.Canonical }/>
-	<meta name="theme-color" content="#05070b" media="(prefers-color-scheme: dark)"/>
-	<meta name="theme-color" content="#eef3fb" media="(prefers-color-scheme: light)"/>
+	<meta name="theme-color" content="#0b0c0e" media="(prefers-color-scheme: dark)"/>
+	<meta name="theme-color" content="#f4f2ec" media="(prefers-color-scheme: light)"/>
 	<meta name="author" content={ page.Portfolio.Name }/>
 	<meta property="og:type" content="profile"/>
 	<meta property="og:site_name" content={ page.Portfolio.Name }/>
@@ -77,43 +89,74 @@ templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
 	<script type="module" src={ static.URL(static.PortfolioScript) } nonce={ templ.GetNonce(ctx) }></script>
 }
 
+// portfolioHeader is the sticky top bar. From 56rem up the sections are an
+// inline nav; below, the same links sit in a <details> menu, which opens
+// without JavaScript (the script only closes it on a choice or Escape).
 templ portfolioHeader(page apiclient.PortfolioPage) {
-	{{ sections := page.Portfolio.Site.Sections }}
-	<header class="pf-header" data-component="header">
-		<div class="pf-wrap pf-header-row">
-			<a href="#main" class="pf-brand" aria-label={ page.Portfolio.Name + ", top of page" }>
-				<span class="pf-brand-mark" aria-hidden="true">
-					<svg viewBox="0 0 24 24"><path d="M4 7h6v10H4zM14 4h6v6h-6zM14 14h6v6h-6zM10 12h4M17 10v4"></path></svg>
-				</span>
-				<span class="pf-brand-name">{ page.Portfolio.Name }</span>
-				<span class="pf-status" aria-hidden="true"><span class="pf-led"></span>online</span>
+	<header class="pf-bar" data-component="header">
+		<div class="pf-wrap pf-bar-row">
+			<a href="#main" class="pf-mark" aria-label={ page.Portfolio.Name + ", top of page" }>
+				<span class="pf-mark-dot" aria-hidden="true"></span>{ page.Portfolio.Name }
 			</a>
-			<nav class="pf-nav" aria-label="Sections">
-				for _, section := range []apiclient.Section{sections.Work, sections.Network, sections.Videos, sections.Uplinks, sections.Archive} {
-					<a href={ templ.SafeURL("#" + section.ID) }><span aria-hidden="true">{ section.Number }</span>{ section.Title }</a>
-				}
+			<nav class="pf-nav pf-mono" aria-label="Sections">
+				@navLinks(page)
 			</nav>
-			<div class="pf-header-actions">
-				@uikit.ThemeToggle("Toggle dark mode")
+			<div class="pf-bar-end">
+				@xChip(page)
+				<span class="pf-theme">
+					@uikit.ThemeToggle("Toggle dark mode")
+				</span>
+				<details class="pf-menu" data-menu>
+					<summary aria-label="Menu">
+						<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5h14M1 8h14M1 12.5h14"></path></svg>
+					</summary>
+					<nav class="pf-menu-panel pf-mono" aria-label="Sections menu">
+						@navLinks(page)
+					</nav>
+				</details>
 			</div>
 		</div>
+		<div class="pf-ruler" aria-hidden="true"></div>
 	</header>
 }
 
-// sectionHead is every section's numbered heading.
+templ navLinks(page apiclient.PortfolioPage) {
+	for _, section := range navSections(page) {
+		<a href={ templ.SafeURL("#" + section.ID) }><span aria-hidden="true">{ section.Number }</span>{ section.Title }</a>
+	}
+}
+
+// xChip is the top bar's link to X. The count shows once a fetch has
+// succeeded ($followersKnown) and rolls on every live update.
+templ xChip(page apiclient.PortfolioPage) {
+	if xLink := socialFor(page.Portfolio.Socials, "X"); xLink.URL != "" {
+		<a class="pf-xchip" data-component="x-chip" href={ templ.SafeURL(xLink.URL) } target="_blank" rel="me noopener">
+			@xGlyph()
+			<span class="pf-sr">{ page.Portfolio.Name } on X</span>
+			<span class="pf-xchip-handle pf-mono" aria-hidden="true">{ "@" + page.Portfolio.XHandle }</span>
+			<span class={ "pf-xchip-count", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown">
+				@odometer(page.Followers.Count, "followers")
+				<span class="pf-live" aria-hidden="true"></span>
+			</span>
+		</a>
+	}
+}
+
+// sectionHead is every section's heading: number and title on the left,
+// the intro on the right.
 templ sectionHead(section apiclient.Section) {
-	<header class="pf-section-head" data-reveal>
-		<p class="pf-section-number"><span>{ section.Number }</span> / { section.ID }</p>
-		<h2 id={ section.ID + "-title" } class="pf-section-title">{ section.Title }</h2>
+	<header class="pf-section-head">
+		<h2 id={ section.ID + "-title" } class="pf-section-title"><span class="pf-section-number pf-mono" aria-hidden="true">{ section.Number }</span>{ section.Title }</h2>
 		<p class="pf-section-intro">{ section.Intro }</p>
 	</header>
 }
 
 templ portfolioFooter(page apiclient.PortfolioPage) {
 	<footer class="pf-footer" data-component="footer">
+		<div class="pf-ruler" aria-hidden="true"></div>
 		<div class="pf-wrap pf-footer-row">
-			<p><strong>{ page.Portfolio.Name }</strong> · { page.Portfolio.Site.Footer }</p>
-			<p class="pf-footer-links">
+			<p class="pf-footer-note"><span class="pf-mark"><span class="pf-mark-dot" aria-hidden="true"></span>{ page.Portfolio.Name }</span>{ page.Portfolio.Site.Footer }</p>
+			<p class="pf-footer-links pf-mono">
 				for _, link := range page.Portfolio.Socials {
 					<a href={ templ.SafeURL(link.URL) } target="_blank" rel="me noopener">{ link.Name }</a>
 				}

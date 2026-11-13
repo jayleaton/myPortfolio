@@ -29,15 +29,18 @@ const FaviconFile = "favicon.ico"
 const CSSFile = "app.css"
 
 // PortfolioScript is the portfolio page's only script of its own: the
-// follower count-up, the hero readouts and the scroll reveals.
+// hero's decode replay, the follower odometer, the menu and the reveals.
 const PortfolioScript = "portfolio.js"
 
 // OGImageFile is the 1200×630 share card (X, Open Graph).
 const OGImageFile = "og.png"
 
-// The self-hosted fonts (SIL Open Font License), preloaded by the page.
+// The self-hosted fonts (SIL Open Font License; the license texts sit
+// beside them in fonts/). DisplayFontFile is preloaded by the page:
+// portfolio.css names the same URL, version included, so keep its ?v= in
+// step with URL(DisplayFontFile) when the file changes.
 const (
-	DisplayFontFile = "fonts/space-grotesk.woff2"
+	DisplayFontFile = "fonts/archivo.woff2"
 	MonoFontFile    = "fonts/jetbrains-mono.woff2"
 )
 
