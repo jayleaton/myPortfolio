@@ -1,6 +1,6 @@
 module github.com/jayleaton/myPortfolio/tools/actionlint
 
-go 1.26.10
+go 1.26.11
 
 tool github.com/rhysd/actionlint/cmd/actionlint
 
