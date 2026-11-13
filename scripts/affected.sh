@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+# Decides what the root module's checks cover for a change (make check-fast,
+# and the LINT_DIRS/TEST_PKGS to run before make ci-local): the Go packages whose own files changed plus every
+# package whose code or tests import them, transitively (Go's package graph
+# via `go list -test -deps`). Changes to shared inputs (go.mod/go.sum,
+# tooling, scripts, lint config, migrations, sqlc's config, queries and
+# generated code) mean a full run: sqlc changes reach the database tests
+# through the schema, not only through imports.
+#
+# A guard fails (exit 3) when the selection does not match the diff: a
+# changed Go file outside deploy/ (its own module) that maps to no package, a
+# changed package missing from the selection, or Go changes and nothing
+# selected. A wrong selection would let make check-fast and make check-pr
+# pass on code they never checked.
+#
+# Usage: scripts/affected.sh [<base>]   (default: merge-base with origin/main,
+#        scripts/branches.sh)
+#        AFFECTED_FILES="a.go b.md" scripts/affected.sh   (explicit file list)
+# Prints key=value lines (and appends them to $GITHUB_OUTPUT when set):
+#   full=true|false     run everything (./...)
+#   packages=<pkgs>     import paths to build/lint/test (empty: no Go changes)
+#   dirs=<dirs>         the same packages as ./relative dirs (for golangci-lint)
+#   sqlc=true|false     sqlc inputs or output changed
+#   templ=true|false    .templ files or their output changed
+#   generate=<dirs>     packages whose //go:generate inputs or outputs changed
+#   smoke=true|false    the release smoke must run (scripts/release-smoke.sh):
+#                       a Dockerfile changed, or a package one builds is affected
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [ -n "${AFFECTED_FILES:-}" ]; then
+  read -r -a changed <<<"$AFFECTED_FILES"
+else
+  if [ -z "${1:-}" ]; then
+    . scripts/branches.sh
+    landing=$(landing_ref)
+    exit_usage=2 # no base to compare with
+    [ -n "$landing" ] || { echo "affected: none of $(deployed_names) fetched (git fetch origin, or pass a base)" >&2; exit "$exit_usage"; }
+  fi
+  base=${1:-$(git merge-base "$landing" HEAD)}
+  mapfile -t changed < <(git diff --name-only --no-renames "$base" HEAD --)
+fi
+
+out() {
+  printf '%s=%s\n' "$1" "$2"
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then printf '%s=%s\n' "$1" "$2" >>"$GITHUB_OUTPUT"; fi
+}
+
+# sqlc inputs and outputs: every queries:/out: path in sqlc.yaml (schemas are
+# migrations).
+sqlcdir=packages/database
+mapfile -t sqlcpaths < <(sed -nE 's/^[[:space:]]*(queries|out):[[:space:]]*([^[:space:]#]+).*/\2/p' "$sqlcdir/sqlc.yaml" |
+  while read -r p; do echo "$sqlcdir/${p%/}/"; done)
+
+# Shared inputs: anything here can change every package's result.
+# AFFECTED_FULL=1 forces a full run.
+full=false
+[ -n "${AFFECTED_FULL:-}" ] && full=true && echo "full run: AFFECTED_FULL" >&2
+[ "$full" = true ] || for f in "${changed[@]}"; do
+  case $f in
+  go.mod | go.sum | mise.toml | Makefile | .golangci.yml | tools/* | scripts/* | \
+    */migrations/* | "$sqlcdir/sqlc.yaml")
+    full=true
+    ;;
+  esac
+  for p in "${sqlcpaths[@]}"; do
+    if [[ $f == "$p"* ]]; then full=true; fi
+  done
+  if [ "$full" = true ]; then
+    echo "full run: $f" >&2
+    break
+  fi
+done
+
+if [ "$full" = true ]; then
+  out full true
+  out packages ./...
+  out dirs ./...
+  out sqlc true
+  out templ true
+  out generate ./...
+  out smoke true
+  exit 0
+fi
+
+# sqlc changes ran everything above; templ inputs and outputs.
+sqlc=false templ=false
+for f in "${changed[@]}"; do
+  case $f in
+  *.templ | *_templ.go) templ=true ;;
+  esac
+done
+
+mod=$(go list -m)
+# file (repo-relative) -> package, for every file go list knows about.
+filemap=$(go list -e -f '{{$d := .Dir}}{{$p := .ImportPath}}{{range .GoFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .CgoFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .TestGoFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .XTestGoFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .IgnoredGoFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .EmbedFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .TestEmbedFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .XTestEmbedFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}{{range .IgnoredOtherFiles}}{{$d}}/{{.}} {{$p}}
+{{end}}' ./... | sed "s|^$PWD/||")
+# package dir -> package, for files go list does not list (deleted files, testdata, ...).
+dirmap=$(go list -e -f '{{.Dir}} {{.ImportPath}}' ./... | sed "s|^$PWD/||")
+
+declare -A seeds=()
+unmapped=()
+for f in "${changed[@]}"; do
+  p=$(awk -v f="$f" '$1 == f { print $2; exit }' <<<"$filemap")
+  if [ -z "$p" ]; then
+    # Nearest enclosing package directory, if any (docs/, apps/mobile-app/ have none).
+    d=$(dirname "$f")
+    while [ "$d" != . ] && [ -z "$p" ]; do
+      p=$(awk -v d="$d" '$1 == d { print $2; exit }' <<<"$dirmap")
+      d=$(dirname "$d")
+    done
+  fi
+  if [ -n "$p" ]; then
+    seeds[$p]=1
+  elif [[ $f == *.go && $f != deploy/* && -e $f ]]; then
+    # A deleted file of a deleted package maps to nothing, and needs nothing:
+    # its importers changed too, or they no longer build.
+    unmapped+=("$f")
+  fi
+done
+
+declare -A affected=()
+if [ "${#seeds[@]}" -gt 0 ]; then
+  # Each line: the package a (test) build belongs to, then everything it
+  # compiles against, with test variants ("p [p.test]") and the generated
+  # test main ("p.test") folded into their package.
+  while read -r owner deps; do
+    if [ -n "${seeds[$owner]:-}" ]; then affected[$owner]=1 && continue; fi
+    for d in $deps; do
+      if [ -n "${seeds[$d]:-}" ]; then affected[$owner]=1 && break; fi
+    done
+  done < <(go list -e -test -deps=false -f '{{.ImportPath}} {{join .Deps " "}}' ./... |
+    sed -E 's/ \[[^]]*\]//g; s/^([^ ]*)_test /\1 /; s/^([^ ]*)\.test /\1 /' |
+    awk -v m="$mod" '$1 == m || index($1, m "/") == 1')
+fi
+
+pkgs=$(printf '%s\n' "${!affected[@]}" | sed '/^$/d' | sort)
+
+# Guard: the selection must cover the diff.
+problems=()
+for f in "${unmapped[@]}"; do problems+=("$f is a changed Go file in no package of $mod"); done
+for p in "${!seeds[@]}"; do
+  [ -n "${affected[$p]:-}" ] || problems+=("$p changed but is not selected")
+done
+gochanged=false
+for f in "${changed[@]}"; do
+  # Existing files: a deleted one in a live package maps to it above, and a
+  # deleted package with no importers left needs nothing checked.
+  if [[ $f == *.go && $f != deploy/* && -e $f ]]; then gochanged=true; fi
+done
+if [ "$gochanged" = true ] && [ -z "$pkgs" ]; then problems+=("Go files changed but no package is selected"); fi
+if [ "${#problems[@]}" -gt 0 ]; then
+  echo "affected: the selection does not match the diff (run everything: AFFECTED_FULL=1, or make ci):" >&2
+  printf '  %s\n' "${problems[@]}" >&2
+  exit 3
+fi
+dirs=$(sed "s|^$mod|.|" <<<"$pkgs")
+
+# go:generate: packages whose directive source or -destination output changed.
+generate=""
+while IFS=: read -r file _ directive; do
+  [ -n "$file" ] || continue
+  dir=$(dirname "$file")
+  dest=$(grep -oE -- '-destination=[^ ]+' <<<"$directive" | cut -d= -f2)
+  for f in "${changed[@]}"; do
+    if [ "$f" = "$file" ] || { [ -n "$dest" ] && [ "$f" = "$dir/$dest" ]; }; then
+      generate+="./$dir "
+      break
+    fi
+  done
+done < <(git grep -n '^//go:generate' -- '*.go' || true)
+
+out full false
+out packages "$(tr '\n' ' ' <<<"$pkgs" | sed 's/ *$//')"
+out dirs "$(tr '\n' ' ' <<<"$dirs" | sed 's/ *$//')"
+out sqlc "$sqlc"
+out templ "$templ"
+out generate "$(sed 's/ *$//' <<<"$generate")"
+
+# Release smoke: a Dockerfile changed, or a binary one builds is affected
+# (affected already holds every package that compiles against a change).
+# Test files and testdata never reach a binary, so they alone do not count.
+smoke=false build_inputs=false
+for file in "${changed[@]}"; do
+  case $file in *_test.go | */testdata/*) ;; *) build_inputs=true ;; esac
+done
+[ "$build_inputs" = true ] && while IFS=$'\x1f' read -r dockerfile _ _ _ build_package; do
+  [ -n "$dockerfile" ] || continue
+  for file in "${changed[@]}"; do [ "$file" != "$dockerfile" ] || smoke=true; done
+  [ -z "${affected[$mod/${build_package#./}]:-}" ] || smoke=true
+done < <(./scripts/dockerfile-builds.sh)
+out smoke "$smoke"

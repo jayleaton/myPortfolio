@@ -1,0 +1,259 @@
+package auth
+
+import (
+	"context"
+	"errors"
+	"strconv"
+)
+
+// ChangePassword sets a new password after checking the current one (Better
+// Auth /change-password). Outstanding reset links and pending email changes
+// stop working. With revokeOtherSessions every session of the user except
+// currentSessionID is revoked. Users without a password (OAuth only) get
+// ErrCredentialAccountNotFound; a wrong current password ErrInvalidPassword.
+// Attempts are limited per client IP and per user.
+func (auth *Auth) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string, revokeOtherSessions bool, currentSessionID string) error {
+	if err := auth.rateLimitUser(ctx, "change-password", userID, RuleSignIn); err != nil {
+		return err
+	}
+	if err := auth.checkPasswordLength(newPassword); err != nil {
+		return err
+	}
+	if len([]rune(currentPassword)) > auth.cfg.MaxPasswordLength {
+		return ErrInvalidPassword
+	}
+	current, err := auth.store.credentialHash(ctx, userID)
+	if errors.Is(err, errNotFound) {
+		return ErrCredentialAccountNotFound
+	}
+	if err != nil {
+		return err
+	}
+	ok, err := verifyPassword(currentPassword, current)
+	if err != nil {
+		auth.log.ErrorContext(ctx, "auth: stored password hash is unreadable", "userId", userID, "err", err)
+		return ErrInvalidPassword
+	}
+	if !ok {
+		return ErrInvalidPassword
+	}
+	hash, err := hashPassword(newPassword, auth.argon)
+	if err != nil {
+		return err
+	}
+	now := auth.now()
+	var revoked int64
+	err = auth.store.tx(ctx, func(querier querier) error {
+		// Conditional on the hash just verified: of two concurrent changes
+		// only the first wins, the other sees ErrInvalidPassword.
+		if err := auth.store.changePassword(ctx, querier, userID, current, hash, now); err != nil {
+			if errors.Is(err, errNotFound) {
+				return ErrInvalidPassword
+			}
+			return err
+		}
+		if err := auth.store.deleteResetTokens(ctx, querier, userID); err != nil {
+			return err
+		}
+		if err := auth.store.deleteEmailChanges(ctx, querier, userID); err != nil {
+			return err
+		}
+		if revokeOtherSessions {
+			if err := auth.store.deleteTrustedDevices(ctx, querier, userID); err != nil {
+				return err
+			}
+			revoked, err = auth.store.deleteOtherSessions(ctx, querier, userID, currentSessionID)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	auth.emit(ctx, Event{Kind: EventPasswordChanged, UserID: userID, SessionID: currentSessionID})
+	if revoked > 0 {
+		auth.emitRevoked(ctx, userID, "", revoked, "password_change")
+	}
+	return nil
+}
+
+// emitRevoked reports sessions ended by someone other than their holder
+// signing out: by is "user", "password_change", "admin" or "ban".
+func (auth *Auth) emitRevoked(ctx context.Context, userID, sessionID string, count int64, by string) {
+	if count <= 0 {
+		return
+	}
+	auth.emit(ctx, Event{Kind: EventSessionRevoked, UserID: userID, SessionID: sessionID,
+		Details: map[string]string{"count": strconv.FormatInt(count, 10), "by": by}})
+}
+
+// ChangeEmail starts Better Auth's change-email flow: a verification link
+// (24 h) goes to newEmail and a notice to the current address. The email only
+// changes, and becomes verified, when the link is opened (VerifyEmail). Only
+// the newest link of a user works, once; a password change or reset, or
+// revoking other sessions, cancels it.
+//
+// When ctx carries the caller's session (requests through Middleware) it must
+// be fresh, created within Config.FreshAge (default 1 day), else
+// ErrSessionNotFresh: a long-lived stolen cookie cannot move the account to
+// another address. Attempts are limited per client IP and per user.
+//
+// A newEmail that belongs to another account returns ErrEmailTaken when email
+// verification is off. When it is required (production) the call succeeds
+// silently and sends nothing, like sign-up, so the endpoint does not reveal
+// which addresses are registered. The address is checked again, atomically,
+// when the link is opened.
+func (auth *Auth) ChangeEmail(ctx context.Context, userID, newEmail, callbackURL string) error {
+	if err := auth.rateLimitUser(ctx, "change-email", userID, RuleEmailSending); err != nil {
+		return err
+	}
+	if _, sess, ok := auth.userFrom(ctx); ok && sess.UserID == userID && auth.now().Sub(sess.CreatedAt) >= auth.cfg.FreshAge {
+		return ErrSessionNotFresh
+	}
+	if err := auth.checkCallbackURL(callbackURL, ErrInvalidCallbackURL); err != nil {
+		return err
+	}
+	newEmail, err := normalizeEmail(newEmail)
+	if err != nil {
+		return err
+	}
+	user, err := auth.store.userByID(ctx, auth.store.pool, userID)
+	if errors.Is(err, errNotFound) {
+		return ErrUserNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if newEmail == user.Email {
+		return ErrEmailUnchanged
+	}
+	if _, err := auth.store.userByEmail(ctx, newEmail); err == nil {
+		if auth.cfg.RequireEmailVerification {
+			auth.log.InfoContext(ctx, "auth: change-email to an existing address", "userId", userID)
+			auth.emit(ctx, Event{Kind: EventEmailChangeRequested, UserID: userID, Email: user.Email,
+				Details: map[string]string{"newEmail": newEmail, "outcome": "address_taken"}})
+			return nil
+		}
+		return ErrEmailTaken
+	} else if !errors.Is(err, errNotFound) {
+		return err
+	}
+
+	now, nonce := auth.now(), generateID(idLength)
+	if err := auth.store.startEmailChange(ctx, user.ID, nonce, now.Add(VerificationTokenTTL), now); err != nil {
+		return err
+	}
+	link := auth.verificationLink(auth.signChangeEmailToken(user.ID, user.Email, newEmail, nonce, VerificationTokenTTL), callbackURL)
+	auth.sendMail(ctx, "change-email", newEmail, func(ctx context.Context) error {
+		return auth.mailer.SendVerificationEmail(ctx, newEmail, link)
+	})
+	auth.sendMail(ctx, "change-email-notice", user.Email, func(ctx context.Context) error {
+		return auth.mailer.SendEmailChangeNotice(ctx, user.Email, newEmail)
+	})
+	auth.emit(ctx, Event{Kind: EventEmailChangeRequested, UserID: userID, Email: user.Email, Details: map[string]string{"newEmail": newEmail}})
+	return nil
+}
+
+// confirmEmailChange applies a change-email link: the pending change is
+// consumed, the account moves to the new address (verified) and the opener is
+// signed in, keeping their session when it already belongs to that account.
+// A browser signed in as someone else gets ErrInvalidUser instead of being
+// switched into this account.
+func (auth *Auth) confirmEmailChange(ctx context.Context, claims verificationClaims) (User, Session, error) {
+	if current, _, ok := auth.userFrom(ctx); ok && current.ID != claims.UserID {
+		return User{}, Session{}, ErrInvalidUser
+	}
+	if claims.UserID == "" || claims.Nonce == "" {
+		return User{}, Session{}, ErrInvalidToken
+	}
+	user, err := auth.store.changeEmail(ctx, claims.UserID, claims.Nonce, claims.Email, claims.UpdateTo, auth.now())
+	if errors.Is(err, errNotFound) {
+		return User{}, Session{}, ErrInvalidToken // used, cancelled, superseded, or the email changed since
+	}
+	if isUniqueViolation(err) {
+		return User{}, Session{}, ErrEmailTaken
+	}
+	if err != nil {
+		return User{}, Session{}, err
+	}
+	auth.emit(ctx, Event{Kind: EventEmailChanged, UserID: user.ID, Email: user.Email, Details: map[string]string{"oldEmail": claims.Email, "newEmail": user.Email}})
+	if current, sess, ok := auth.userFrom(ctx); ok && current.ID == user.ID {
+		return user, sess, nil
+	}
+	if needs, err := auth.needsSecondFactor(ctx, user.ID); err != nil || needs {
+		return user, Session{}, err // an email link is no second factor: sign in normally
+	}
+	sess, err := auth.createSession(ctx, user.ID)
+	if err != nil {
+		return User{}, Session{}, err
+	}
+	auth.emit(ctx, Event{Kind: EventSignIn, UserID: user.ID, Email: user.Email, SessionID: sess.ID, Method: SignInMethodEmailChanged})
+	return user, sess, nil
+}
+
+// ListSessions returns the user's active sessions, newest first. Tokens are
+// never included (Session.Token is empty), so the list cannot be used to
+// hijack a session.
+func (auth *Auth) ListSessions(ctx context.Context, userID string) ([]Session, error) {
+	return auth.store.listSessions(ctx, userID, auth.now())
+}
+
+// RevokeSession signs out one of the user's own sessions. Another user's
+// session, or an unknown id, returns ErrSessionNotFound.
+func (auth *Auth) RevokeSession(ctx context.Context, userID, sessionID string) error {
+	return auth.revokeSession(ctx, userID, sessionID, "")
+}
+
+func (auth *Auth) revokeSession(ctx context.Context, userID, sessionID, token string) error {
+	if sessionID == "" && token == "" {
+		return ErrSessionNotFound
+	}
+	if sessionID != "" {
+		token = "" // one session: the id wins, so a body with both cannot revoke two
+	}
+	id, err := auth.store.deleteUserSession(ctx, userID, sessionID, token)
+	if errors.Is(err, errNotFound) {
+		return ErrSessionNotFound
+	}
+	if err != nil {
+		return err
+	}
+	auth.emitRevoked(ctx, userID, id, 1, "user")
+	return nil
+}
+
+// RevokeOtherSessions signs out every session of the user except
+// currentSessionID and cancels pending email changes, which another session
+// may have started.
+func (auth *Auth) RevokeOtherSessions(ctx context.Context, userID, currentSessionID string) error {
+	var revoked int64
+	err := auth.store.tx(ctx, func(querier querier) error {
+		var err error
+		if revoked, err = auth.store.deleteOtherSessions(ctx, querier, userID, currentSessionID); err != nil {
+			return err
+		}
+		return auth.store.deleteEmailChanges(ctx, querier, userID)
+	})
+	if err == nil && revoked > 0 {
+		auth.emitRevoked(ctx, userID, "", revoked, "user")
+	}
+	return err
+}
+
+// rateLimitUser applies rule per client IP and per user, so neither many
+// accounts from one address nor one account from many addresses get more
+// attempts.
+func (auth *Auth) rateLimitUser(ctx context.Context, endpoint, userID string, rule RateRule) error {
+	if err := auth.rateLimit(ctx, endpoint, rule); err != nil {
+		return err
+	}
+	retry, err := auth.limiter.Allow(ctx, "user:"+userID+"|"+endpoint, rule)
+	if err != nil {
+		auth.log.ErrorContext(ctx, "auth: rate limiter failed", "err", err)
+		return nil
+	}
+	if retry > 0 {
+		return &RateLimitError{RetryAfter: retry}
+	}
+	return nil
+}

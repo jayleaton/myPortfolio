@@ -1,0 +1,57 @@
+# Local sandbox only; ports bind to 127.0.0.1. Run it through make: the
+# Makefile gives each checkout its own project name and ports (`make env`), so
+# parallel worktrees never collide. The defaults below apply to bare
+# `docker compose` only.
+name: ${COMPOSE_PROJECT_NAME:-myportfolio}
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck: # TCP: the first-boot init server answers on the unix socket only
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d app"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  pgweb:
+    image: sosedoff/pgweb:0.17.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PGWEB_PORT:-5050}:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGWEB_DATABASE_URL: postgres://postgres:postgres@postgres:5432/app?sslmode=disable
+    command: ["pgweb", "--bind=0.0.0.0", "--listen=8081"]
+
+  # Throwaway server for `make test`: tmpfs storage, durability off. Tests
+  # create their own databases on it, so it never needs a volume.
+  postgres-test:
+    image: postgres:18-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off", "-c", "max_connections=200"]
+    ports:
+      - "127.0.0.1:${TEST_POSTGRES_PORT:-}:5432" # empty: Docker picks a free port
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck: # TCP: the first-boot init server answers on the unix socket only
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  postgres_data:

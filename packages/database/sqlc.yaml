@@ -1,0 +1,48 @@
+version: "2"
+sql:
+  - engine: postgresql
+    # Auth tables (owned by packages/auth) first, then app migrations.
+    schema: [../auth/migrations, migrations]
+    queries: queries
+    gen:
+      go:
+        package: sqlc
+        out: sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_json_tags: true
+        omit_unused_structs: true # auth tables stay invisible unless a query uses them
+        json_tags_case_style: camel
+        overrides:
+          - db_type: timestamptz
+            go_type: time.Time
+          - db_type: timestamp
+            go_type: time.Time
+  # apps/admin, read-only over the app database (adminrepo.Stats).
+  - engine: postgresql
+    schema: [../auth/migrations, migrations]
+    queries: adminrepo/queries/app
+    gen:
+      go:
+        package: appsql
+        out: adminrepo/appsql
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        omit_unused_structs: true
+        overrides:
+          - db_type: timestamptz
+            go_type: time.Time
+  # apps/admin's own database: admin auth tables + the audit log (adminrepo.AuditLog).
+  - engine: postgresql
+    schema: [../auth/migrations, adminrepo/migrations]
+    queries: adminrepo/queries/admin
+    gen:
+      go:
+        package: adminsql
+        out: adminrepo/adminsql
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        omit_unused_structs: true
+        overrides:
+          - db_type: timestamptz
+            go_type: time.Time

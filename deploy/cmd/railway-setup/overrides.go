@@ -1,0 +1,76 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/jayleaton/myPortfolio/deploy/platform"
+)
+
+// override is a platform.yaml key a person or agent can set without editing
+// the file: --project or PLATFORM_PROJECT, and so on. Set values are written
+// into platform.yaml (comments kept), so the file stays the record and a
+// re-run without flags does the same thing.
+type override struct {
+	key, flagName, env, usage string
+	value                     *string
+}
+
+func overrides() []*override {
+	return []*override{
+		{key: "project", flagName: "project", env: "PLATFORM_PROJECT", usage: "Railway project name (default from platform.yaml; auto: the repo name)"},
+		{key: "workspace", flagName: "workspace", env: "PLATFORM_WORKSPACE", usage: "Railway workspace name or id (needed when you belong to several)"},
+		{key: "environments", flagName: "environments", env: "PLATFORM_ENVIRONMENTS", usage: "production | staging,production | staging,qa,production"},
+		{key: "admin", flagName: "admin", env: "PLATFORM_ADMIN", usage: "true|false: the admin dashboard and its own Postgres"},
+		{key: "region", flagName: "region", env: "PLATFORM_REGION", usage: "Railway region for every service (\"\": Railway's default)"},
+		{key: "repo", flagName: "repo", env: "PLATFORM_REPO", usage: "GitHub owner/name, auto (origin remote) or \"\" (upload only)"},
+		{key: "email.from", flagName: "email-from", env: "PLATFORM_EMAIL_FROM", usage: "sender of auth emails, on your verified email domain (required: production refuses an example one)"},
+	}
+}
+
+// resolve picks each override from its flag, else its env var.
+func (override *override) resolve(flagValue string, set bool) {
+	switch {
+	case set:
+		override.value = &flagValue
+	default:
+		if value, ok := os.LookupEnv(override.env); ok {
+			override.value = &value
+		}
+	}
+}
+
+// persist writes the set overrides into platform.yaml (validated first);
+// it returns the keys it changed.
+func persist(path string, ovs []*override) ([]string, error) {
+	var keys []platform.Key
+	for _, ov := range ovs {
+		if ov.value == nil {
+			continue
+		}
+		value := strings.TrimSpace(*ov.value)
+		if ov.key == "admin" {
+			if value = strings.ToLower(value); value != "true" && value != "false" {
+				return nil, fmt.Errorf("--admin must be true or false, got %q", *ov.value)
+			}
+		}
+		keys = append(keys, platform.Key{Name: ov.key, Value: value})
+	}
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	out, changed, err := platform.Edit(raw, keys)
+	if err != nil || len(changed) == 0 {
+		return nil, err
+	}
+	fi, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	return changed, os.WriteFile(path, out, fi.Mode().Perm())
+}

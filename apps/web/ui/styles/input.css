@@ -1,0 +1,8 @@
+/* Tailwind v4 input for the web UI. Build: `make css` (see apps/web/ui/README.md;
+   output: apps/web/ui/static/app.css). Colors, radius, shadows and fonts are
+   the shared design tokens: re-theme in packages/uikit/theme.css. */
+@import 'tailwindcss' source(none);
+@import '../../../../packages/uikit/theme.css';
+@import '../../../../packages/uikit/base.css';
+@source "../**/*.templ";
+@source "../**/*.go";
