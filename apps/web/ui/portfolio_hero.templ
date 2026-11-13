@@ -35,22 +35,24 @@ templ homeHero(page apiclient.PortfolioPage) {
 
 // doorways are the home page's tiles, one per area and all the same
 // shape: a figure, what it counts, and the names behind it. Until the X
-// count is known its tile shows the handle.
+// count is known its tile shows the handle. On a desktop with a mouse a
+// tile opens downward on hover or keyboard focus to show its panel.
 templ doorways(page apiclient.PortfolioPage) {
 	{{ pages := page.Portfolio.Site.Pages }}
 	{{ products := inArea(page.Portfolio.Featured, areaSaaS) }}
 	{{ engines := inArea(page.Portfolio.Featured, areaLocalAI) }}
 	{{ runs := decodeRuns(engines) }}
+	{{ shipped := shippedRows(page) }}
 	<section class="pf-doors" data-section="doorways" aria-label="What I build">
 		<ul class="pf-wrap pf-door-list">
 			<li>
-				@doorway(navItem{Path: config.AppRoutes.SaaS, Page: pages.SaaS}, names(products)) {
-					<span class="pf-figure">{ itoa(shipped(page)) }</span>
+				@doorway(navItem{Path: config.AppRoutes.SaaS, Page: pages.SaaS}, names(products), linkRows(shipped)) {
+					<span class="pf-figure">{ itoa(len(shipped)) }</span>
 					<span class="pf-door-note pf-mono">{ pages.SaaS.Teaser }</span>
 				}
 			</li>
 			<li>
-				@doorway(navItem{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI}, names(engines)) {
+				@doorway(navItem{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI}, names(engines), engineList(engineRows(engines))) {
 					if len(runs) > 0 {
 						<span class="pf-figure">{ runs[0].Rate }<small>{ rateUnit }</small></span>
 						<span class="pf-door-note pf-mono">{ runs[0].Name } · { pages.LocalAI.Teaser }</span>
@@ -60,7 +62,7 @@ templ doorways(page apiclient.PortfolioPage) {
 				}
 			</li>
 			<li>
-				@doorway(navItem{Path: config.AppRoutes.Socials, Page: pages.Socials}, "@" + page.Portfolio.XHandle + " · " + page.Portfolio.Site.Sections.Videos.Title) {
+				@doorway(navItem{Path: config.AppRoutes.Socials, Page: pages.Socials}, "@" + page.Portfolio.XHandle + " · " + page.Portfolio.Site.Sections.Videos.Title, profileList(page)) {
 					<span class={ "pf-figure", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown">
 						@odometer(page.Followers.Count, pages.Socials.Teaser)
 					</span>
@@ -72,16 +74,114 @@ templ doorways(page apiclient.PortfolioPage) {
 	</section>
 }
 
-// doorway is one tile: the page's number and name, its figure and what
-// the figure counts (children), and the names behind it. The whole tile is the link.
-templ doorway(item navItem, behind string) {
-	<a class="pf-door" data-component="doorway" href={ templ.SafeURL(item.Path) }>
-		<span class="pf-door-top pf-mono"><span><strong>{ item.Page.Number }</strong> { item.Page.Name }</span><span class="pf-door-arrow" aria-hidden="true">→</span></span>
-		<span class="pf-door-figure">
-			{ children... }
-		</span>
-		<span class="pf-door-text">{ behind }</span>
-	</a>
+// doorway is one tile. Its link holds the page's number and name, the
+// figure with what it counts (children) and the names behind it, and
+// covers the whole tile at rest. The panel (more) is a sibling of that
+// link, so its own links are not nested in it; it ends with a link to the
+// page. portfolio.css shows the panel only on a desktop with a mouse and
+// keeps it out of the tab order while the tile is closed.
+templ doorway(item navItem, behind string, more templ.Component) {
+	<article class="pf-door" data-component="doorway">
+		<a class="pf-door-link" href={ templ.SafeURL(item.Path) }>
+			<span class="pf-door-top pf-mono"><span><strong>{ item.Page.Number }</strong> { item.Page.Name }</span><span class="pf-door-arrow" aria-hidden="true">→</span></span>
+			<span class="pf-door-fold pf-door-fold-figure">
+				<span>
+					<span class="pf-door-figure">
+						{ children... }
+					</span>
+				</span>
+			</span>
+			<span class="pf-door-fold pf-door-fold-text">
+				<span><span class="pf-door-text">{ behind }</span></span>
+			</span>
+		</a>
+		<div class="pf-door-more" data-component="doorway-panel">
+			<div class="pf-door-more-in">
+				@more
+				<a class="pf-door-all pf-mono" href={ templ.SafeURL(item.Path) }>See all<span class="pf-sr">: { item.Page.Name }</span> <span aria-hidden="true">→</span></a>
+			</div>
+		</div>
+	</article>
+}
+
+// linkRows is a panel of one-line rows: each row is a link with its name
+// and one line about it.
+templ linkRows(rows []doorRow) {
+	<ul class="pf-more-list">
+		for _, row := range rows {
+			<li>
+				<a class="pf-more-row" href={ templ.SafeURL(row.URL) } target="_blank" rel="noopener">
+					<span class="pf-more-name">{ row.Name }</span>
+					<span class="pf-more-detail">{ row.Detail }</span>
+				</a>
+			</li>
+		}
+	</ul>
+}
+
+// engineList is the local AI panel: each project links to its card, and
+// each of its headline metrics links to its receipt.
+templ engineList(rows []engineRow) {
+	<ul class="pf-more-list pf-more-list-tall">
+		for _, row := range rows {
+			<li class="pf-more-item">
+				<span class="pf-more-head">
+					<a class="pf-more-name" href={ templ.SafeURL(projectHref(row.Project)) }>{ row.Project.Name }</a>
+					if len(row.Metrics) > 0 {
+						<span class="pf-more-metrics">
+							for _, metric := range row.Metrics {
+								<a href={ templ.SafeURL(metric.Source) } target="_blank" rel="noopener" title={ metric.Label }>{ metricNumber(metric) }<span class="pf-sr"> { metricUnit(metric) }: { metric.Label } (receipt)</span></a>
+							}
+							if metricUnit(row.Metrics[0]) != "" {
+								<small class="pf-mono" aria-hidden="true">{ metricUnit(row.Metrics[0]) }</small>
+							}
+						</span>
+					}
+				</span>
+				<span class="pf-more-detail">{ row.Detail }</span>
+			</li>
+		}
+	</ul>
+}
+
+// profileList is the build-in-public panel: X with the live count, YouTube
+// with the latest upload, then the other profiles.
+templ profileList(page apiclient.PortfolioPage) {
+	{{ socials := page.Portfolio.Socials }}
+	<ul class="pf-more-list pf-more-list-tall">
+		if link := socialFor(socials, socialX); link.URL != "" {
+			<li>
+				<a class="pf-more-item" href={ templ.SafeURL(link.URL) } target="_blank" rel="noopener">
+					<span class="pf-more-name">{ link.Name }</span>
+					<span class={ "pf-more-detail", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown" data-text={ "$followers.toLocaleString('en-US') + ' " + page.Portfolio.Site.Pages.Socials.Teaser + " · live'" }>{ groupDigits(page.Followers.Count) } { page.Portfolio.Site.Pages.Socials.Teaser } · live</span>
+					<span class={ "pf-more-detail", templ.KV("hidden", page.Followers.Known) } data-class:hidden="$followersKnown">{ link.Description }</span>
+				</a>
+			</li>
+		}
+		if link := socialFor(socials, socialYouTube); link.URL != "" {
+			<li>
+				if video, found := latestVideo(page); found {
+					<a class="pf-more-item" href={ templ.SafeURL(watchURL(video)) } target="_blank" rel="noopener">
+						<span class="pf-more-name">{ link.Name } <small class="pf-mono">Latest</small></span>
+						<span class="pf-more-detail">{ video.Title }</span>
+					</a>
+				} else {
+					<a class="pf-more-item" href={ templ.SafeURL(link.URL) } target="_blank" rel="noopener">
+						<span class="pf-more-name">{ link.Name }</span>
+						<span class="pf-more-detail">{ link.Description }</span>
+					</a>
+				}
+			</li>
+		}
+		for _, row := range profileRows(socials) {
+			<li>
+				<a class="pf-more-item" href={ templ.SafeURL(row.URL) } target="_blank" rel="noopener">
+					<span class="pf-more-name">{ row.Name }</span>
+					<span class="pf-more-detail">{ row.Detail }</span>
+				</a>
+			</li>
+		}
+	</ul>
 }
 
 // localHero is the top of the local AI page: its headline and intro as

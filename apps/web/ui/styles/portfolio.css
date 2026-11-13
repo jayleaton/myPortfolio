@@ -64,6 +64,10 @@
   --pf-size-count: clamp(3.5rem, 2rem + 7vw, 6rem);
   --pf-size-door: clamp(3rem, 2rem + 3.4vw, 4.75rem); /* a doorway tile's figure */
   --pf-size-hook: clamp(4.75rem, 0.6rem + 17vw, 12.5rem); /* the home hook */
+  --pf-door-rest: 15.625rem; /* a doorway tile's height at rest, where it can open */
+  --pf-size-more: 0.8125rem; /* a tile panel's rows */
+  --pf-more-line: 1.125rem;
+  --pf-more-pad: 0.125rem;
   --pf-hook-step: 0.85s; /* one word's pass through the hook */
   --pf-hook-wait: 0.25s;
   --pf-size-display-page: clamp(2rem, 1.3rem + 3vw, 3.5rem); /* the other pages' headlines */
@@ -101,6 +105,9 @@
 
 /* Base */
 html {
+  /* Room for a scrollbar is kept, so a page that starts to scroll (a tile
+     opening on the home page) does not shift sideways. */
+  scrollbar-gutter: stable;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--pf-bar-height) + var(--pf-space-6));
 }
@@ -609,22 +616,29 @@ a:hover > .pf-button-primary {
 .pf-door-list li {
   display: grid;
 }
+/* A tile is a box with one link over all of it at rest. .pf-door-fold
+   wraps the parts that can fold away when the tile opens (below). */
 .pf-door {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--pf-space-5);
+  display: flex;
+  flex-direction: column;
   min-height: 12.5rem;
-  padding: var(--pf-space-4) var(--pf-space-5) var(--pf-space-5);
   border: 1px solid var(--pf-line-strong);
   background: var(--pf-surface);
-  text-decoration: none;
   transition:
     border-color var(--pf-fast),
     background-color var(--pf-fast);
 }
-.pf-door:hover {
+.pf-door:hover,
+.pf-door:focus-within {
   border-color: var(--pf-accent);
   background: var(--pf-raised);
+}
+.pf-door-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: var(--pf-space-4) var(--pf-space-5) var(--pf-space-5);
+  text-decoration: none;
 }
 .pf-door-top {
   display: flex;
@@ -643,14 +657,32 @@ a:hover > .pf-button-primary {
   font-size: var(--pf-size-lg);
   transition: transform var(--pf-base) var(--pf-ease);
 }
-.pf-door:hover .pf-door-arrow {
+.pf-door:hover .pf-door-arrow,
+.pf-door:focus-within .pf-door-arrow {
   color: var(--pf-accent);
   transform: translateX(4px);
+}
+.pf-door-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.pf-door-fold > * {
+  display: block;
+  position: relative; /* so the fold also clips the screen-reader text inside */
+  min-height: 0;
+  /* Clipped top and bottom only, so the live dot's ring is not cut at the
+     side. No padding here: a padded box cannot fold to nothing. */
+  overflow-x: visible;
+  overflow-y: clip;
+}
+.pf-door-fold-figure {
+  flex: 1;
 }
 .pf-door-figure {
   display: grid;
   align-content: start;
   gap: var(--pf-space-2);
+  padding-top: var(--pf-space-5);
 }
 .pf-door .pf-figure {
   font-size: var(--pf-size-door);
@@ -668,10 +700,177 @@ a:hover > .pf-button-primary {
   display: none;
 }
 .pf-door-text {
+  display: block;
+  margin-top: var(--pf-space-5);
   padding-top: var(--pf-space-4);
   border-top: 1px solid var(--pf-line);
   color: var(--pf-text);
   font-weight: 500;
+}
+
+/* A tile's panel: more about its area, in rows. It is not rendered unless
+   the tile can open (the media query below), so a phone or a touch screen
+   gets the tile as one link and nothing hidden. */
+.pf-door-more {
+  display: none;
+}
+.pf-door-more-in {
+  display: flex;
+  position: relative; /* clips the screen-reader text inside while closed */
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding-inline: var(--pf-space-5);
+}
+.pf-more-list {
+  border-top: 1px solid var(--pf-line);
+}
+.pf-more-list > li {
+  border-bottom: 1px solid var(--pf-line);
+}
+.pf-more-row,
+.pf-more-item {
+  display: grid;
+  gap: 0 var(--pf-space-3);
+  font-size: var(--pf-size-more);
+  line-height: var(--pf-more-line);
+  text-decoration: none;
+}
+.pf-more-row {
+  grid-template-columns: auto minmax(0, 1fr);
+  padding-block: var(--pf-more-pad);
+}
+.pf-more-item {
+  padding-block: var(--pf-space-1);
+}
+.pf-more-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+}
+.pf-more-name {
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pf-more-name small {
+  margin-left: var(--pf-space-1);
+  color: var(--pf-faint);
+  font-weight: 500;
+}
+.pf-more-detail {
+  overflow: hidden;
+  color: var(--pf-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pf-more-metrics {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pf-space-2);
+  font-family: var(--pf-font-display);
+  font-stretch: var(--pf-stretch-figure);
+  font-size: var(--pf-size-md);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.pf-more-metrics a {
+  text-decoration: underline;
+  text-decoration-color: var(--pf-line-strong);
+  text-underline-offset: 3px;
+}
+.pf-more-metrics small {
+  color: var(--pf-faint);
+  font-weight: 500;
+}
+a.pf-more-row:hover .pf-more-name,
+a.pf-more-item:hover .pf-more-name,
+a.pf-more-name:hover,
+.pf-more-metrics a:hover {
+  color: var(--pf-accent);
+  text-decoration-color: var(--pf-accent);
+}
+.pf-door-all {
+  align-self: start;
+  margin-top: auto;
+  padding-block: var(--pf-space-2);
+  color: var(--pf-text);
+  text-decoration: none;
+}
+.pf-door-all:hover {
+  color: var(--pf-accent);
+}
+
+/* A mouse and a wide screen: a tile opens downward on hover or keyboard
+   focus. The row's tiles keep their own heights (align-items), so the
+   neighbours and the hero stay where they are. The names line folds away
+   as the panel, which lists the same things in full, opens under the
+   figure. While closed the panel is visibility: hidden, so its links are
+   out of the tab order; focus on the tile's link opens it before the next
+   Tab. */
+@media (hover: hover) and (pointer: fine) and (min-width: 64rem) {
+  .pf-door-list {
+    align-items: start;
+  }
+  .pf-door {
+    min-height: var(--pf-door-rest);
+  }
+  .pf-door-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pf-door-note {
+    white-space: nowrap;
+  }
+  .pf-door-fold {
+    transition: grid-template-rows var(--pf-base) var(--pf-ease);
+  }
+  .pf-door-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows var(--pf-base) var(--pf-ease),
+      visibility 0s linear var(--pf-base);
+  }
+  .pf-door:hover .pf-door-more,
+  .pf-door:focus-within .pf-door-more {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  .pf-door:hover .pf-door-fold-text,
+  .pf-door:focus-within .pf-door-fold-text {
+    grid-template-rows: 0fr;
+  }
+  .pf-door:hover .pf-door-fold-figure,
+  .pf-door:focus-within .pf-door-fold-figure {
+    flex: none;
+  }
+  .pf-door:hover .pf-door-link,
+  .pf-door:focus-within .pf-door-link {
+    flex: none;
+    padding-bottom: var(--pf-space-4);
+  }
+  .pf-door:hover .pf-door-more,
+  .pf-door:focus-within .pf-door-more {
+    flex: 1;
+  }
+}
+/* The same, in a window too short to open a tile under its figure without
+   pushing the footer out: the figure folds away too, and the panel takes
+   its place. The tile never gets shorter than it is at rest. */
+@media (hover: hover) and (pointer: fine) and (min-width: 64rem) and (max-height: 66.49rem) {
+  .pf-door:hover .pf-door-fold-figure,
+  .pf-door:focus-within .pf-door-fold-figure {
+    grid-template-rows: 0fr;
+  }
+  .pf-door:hover .pf-door-link,
+  .pf-door:focus-within .pf-door-link {
+    padding-bottom: var(--pf-space-3);
+  }
 }
 
 /* decode: the text is in the HTML and painted on the first frame. The head
