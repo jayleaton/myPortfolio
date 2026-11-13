@@ -139,6 +139,10 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	webUI := ui.New(ui.Deps{
+		API: api.NewClient(usersAPI, api.NewSessions(server.NewAuthenticator(authn), gate)).WithSocial(socialAPI).WithPortfolio(portfolioAPI), Gate: gate, Features: cfg.Features, AppName: cfg.AppName, PublicURL: cfg.PublicURL,
+		SecureCookies: cfg.PublicURL.Scheme == "https", Logger: log,
+	})
 	handler := server.New(server.Deps{
 		Config:    cfg,
 		Log:       log,
@@ -149,10 +153,7 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 		Social:    socialAPI,
 		Images:    images,
 		Portfolio: portfolioAPI,
-		UI: ui.New(ui.Deps{
-			API: api.NewClient(usersAPI, api.NewSessions(server.NewAuthenticator(authn), gate)).WithSocial(socialAPI).WithPortfolio(portfolioAPI), Gate: gate, Features: cfg.Features, AppName: cfg.AppName, PublicURL: cfg.PublicURL,
-			SecureCookies: cfg.PublicURL.Scheme == "https", Logger: log,
-		}).Handler(),
+		UI:        webUI.Handler(),
 	})
 
 	srv := &http.Server{
@@ -163,6 +164,7 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 		// No WriteTimeout: Datastar SSE streams stay open.
 		ErrorLog: slog.NewLogLogger(log.Handler(), slog.LevelWarn),
 	}
+	srv.RegisterOnShutdown(webUI.Shutdown) // end live streams so pages reconnect to the next instance
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
 	log.Info("listening", "addr", cfg.Addr, "public_url", cfg.PublicURL.String(), "env", cfg.Env)

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -34,6 +35,9 @@ type UI struct {
 	interval time.Duration
 	hub      *hub
 	csrf     *http.CrossOriginProtection
+	// closing is closed by Shutdown to end the live streams (live.go).
+	closing   chan struct{}
+	closeOnce sync.Once
 }
 
 // New builds the UI. API and Gate are required.
@@ -53,6 +57,7 @@ func New(deps Deps) *UI {
 		interval: deps.LiveInterval,
 		hub:      newHub(),
 		csrf:     http.NewCrossOriginProtection(),
+		closing:  make(chan struct{}),
 	}
 	if ui.appName == "" {
 		ui.appName = config.DefaultAppName

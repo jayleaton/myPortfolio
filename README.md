@@ -30,7 +30,9 @@ from the `cache_entry` table, then refreshes in the background:
 - **X followers**, every 15 minutes, from the free public JSON at `api.fxtwitter.com/<handle>` (`user.followers`), with
   `api.vxtwitter.com` as a fallback. There is no paid X API and no key. A failed refresh keeps the last good count;
   before the first success the number is hidden. Open pages get the new count over a Datastar SSE stream
-  (`/live/followers`) and animate up to it.
+  (`/live/followers`) and animate up to it. The stream survives restarts and deploys: the page's first request is a
+  handshake that appends an element whose stream retries forever (Datastar `retry: 'always'`), and a shutting-down
+  server ends streams cleanly so pages reconnect to the next instance (`apps/web/ui/live.go`).
 - **YouTube**, hourly: the channel's `/videos` page (`ytInitialData`), with the RSS feed as a fallback (it has returned
   404 since late 2026). Until the first success the page shows `FallbackVideos` from `data.go`.
 

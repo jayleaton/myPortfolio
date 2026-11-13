@@ -41,15 +41,19 @@ func (ui *UI) liveFollowers(writer http.ResponseWriter, request *http.Request, _
 	sse := datastar.NewSSE(writer, request)
 	tick := time.NewTicker(liveFollowersPoll)
 	defer tick.Stop()
+	if request.URL.Query().Get(liveStreamParam) == "" {
+		ui.liveHandshake(ctx, sse) // see live.go
+		return
+	}
 	var sent apiclient.Followers
 	first := true
 	for {
 		followers, err := ui.api.PortfolioFollowers(ctx)
 		if err != nil {
 			ui.log.WarnContext(ctx, "ui: live followers", "err", err)
-			return
+			return // the page reconnects
 		}
-		if first || followers.Count != sent.Count || followers.Known != sent.Known {
+		if first || followersChanged(sent, followers) {
 			if err := sse.MarshalAndPatchSignals(followerSignals(followers)); err != nil {
 				return
 			}
@@ -57,6 +61,8 @@ func (ui *UI) liveFollowers(writer http.ResponseWriter, request *http.Request, _
 		}
 		select {
 		case <-ctx.Done():
+			return
+		case <-ui.closing:
 			return
 		case <-tick.C:
 		}
