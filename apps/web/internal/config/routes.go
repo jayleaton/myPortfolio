@@ -13,8 +13,15 @@ var AppRoutes = struct {
 	// SocialCallback is where the provider sends the browser back (GET, and
 	// Apple's form POST); its prefix is the callback to register.
 	SocialSignIn, SocialCallback string
+	// The portfolio's pages beside Home: the local AI work, the products,
+	// the social links and the older projects.
+	LocalAI, SaaS, Socials, Archive string
 }{
 	Home:               "/",
+	LocalAI:            "/local-ai",
+	SaaS:               "/saas",
+	Socials:            "/socials",
+	Archive:            "/archive",
 	Login:              "/login",
 	Signup:             "/signup",
 	ForgotPassword:     "/auth/forgot-password",

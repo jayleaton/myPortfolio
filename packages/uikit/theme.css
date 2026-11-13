@@ -6,21 +6,21 @@
    the surface they sit on; packages/uikit/README.md lists the pairs. */
 :root {
   /* Page and panels */
-  --ui-background: light-dark(#eef3fb, #05070b);
-  --ui-foreground: light-dark(#0b1a33, #e6edf7);
-  --ui-surface: light-dark(#ffffff, #0b1018);
-  --ui-muted: light-dark(#e2eaf6, #111a26);
-  --ui-muted-foreground: light-dark(#44546f, #8b9bb4);
-  --ui-border: light-dark(#c9d6ea, #1b2433);
-  --ui-input: light-dark(#7d8ca6, #5d6b82);
-  --ui-ring: light-dark(#0b5cd5, #22d3ee);
+  --ui-background: light-dark(#f4f2ec, #0b0c0e);
+  --ui-foreground: light-dark(#15171a, #ecedee);
+  --ui-surface: light-dark(#faf9f5, #111316);
+  --ui-muted: light-dark(#eae7df, #171a1e);
+  --ui-muted-foreground: light-dark(#4a5058, #a3a9b1);
+  --ui-border: light-dark(#dad6cb, #262a30);
+  --ui-input: light-dark(#857f70, #6b727c);
+  --ui-ring: light-dark(#b83a06, #ff6a2b);
 
   /* Brand */
-  --ui-primary: light-dark(#0b5cd5, #22d3ee);
-  --ui-primary-foreground: light-dark(#ffffff, #03141a);
-  --ui-primary-hover: light-dark(#0948a8, #67e8f9);
-  --ui-accent: light-dark(#dce9fc, #08262e);
-  --ui-accent-foreground: light-dark(#0a3f8f, #a5f3fc);
+  --ui-primary: light-dark(#b83a06, #ff6a2b);
+  --ui-primary-foreground: light-dark(#ffffff, #0b0c0e);
+  --ui-primary-hover: light-dark(#9a3005, #ff8552);
+  --ui-accent: light-dark(#f6e3d8, #2a1509);
+  --ui-accent-foreground: light-dark(#8f2c04, #ffb38f);
 
   /* Status: solid (buttons), soft (alerts, badges) */
   --ui-danger: light-dark(#dc2626, #f87171);
@@ -43,12 +43,12 @@
   --ui-info-border: light-dark(#bae6fd, #0c4a6e);
 
   /* Shape and type */
-  --ui-radius-control: 0.5rem;
-  --ui-radius-card: 0.875rem;
+  --ui-radius-control: 0.125rem;
+  --ui-radius-card: 0.125rem;
   --ui-shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.04);
   --ui-shadow-popover: 0 10px 30px -10px rgb(15 23 42 / 0.25), 0 4px 10px -4px rgb(15 23 42 / 0.12);
-  --ui-font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  --ui-font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     'Noto Sans', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
-  --ui-font-display: 'Space Grotesk', var(--ui-font-sans);
+  --ui-font-display: 'Archivo', var(--ui-font-sans);
   --ui-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }

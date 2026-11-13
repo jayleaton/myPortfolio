@@ -1,63 +1,149 @@
 package ui
 
-// The hero: name, headline, bio, calls to action, the terminal status block
-// and the architecture diagram (diagramSVG in portfolio_visuals.templ).
+// The home page's hero (the hook) and the doorway tiles under it, and the
+// local AI page's hero: its text replays at a published decode rate, with
+// the run panel beside the stack figure (stackFigure in
+// portfolio_visuals.templ).
 
-import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+import (
+	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
+)
 
-templ hero(page apiclient.PortfolioPage) {
-	{{ site := page.Portfolio.Site }}
-	<section class="pf-hero" data-section="hero" aria-labelledby="hero-title">
-		<div class="pf-wrap pf-hero-grid">
-			<div class="pf-hero-copy">
-				<p class="pf-kicker"><span class="pf-led"></span>{ site.Kicker }</p>
-				<h1 id="hero-title" class="pf-display">
-					<span class="pf-display-name">{ page.Portfolio.Name }</span>
-					<span class="pf-display-line">{ page.Portfolio.Headline }</span>
-				</h1>
-				<p class="pf-lede">{ page.Portfolio.Bio }</p>
-				<div class="pf-cta">
-					<a class="pf-button pf-button-primary" href="#work">Inspect the engine room <span aria-hidden="true">↓</span></a>
-					if xLink := socialFor(page.Portfolio.Socials, "X"); xLink.URL != "" {
-						<a class="pf-button" href={ templ.SafeURL(xLink.URL) } rel="me noopener" target="_blank">
-							Follow on X
-							<span class="pf-count-chip hidden" data-class:hidden="!$followersKnown" aria-hidden="true"><span data-count data-attr:data-target="$followers">{ groupDigits(page.Followers.Count) }</span></span>
-						</a>
+// homeHero is the name, the hook and one line. The h1's text is the plain
+// sentence (Lead + Final). The words that pass through its last slot are
+// drawn by CSS from data-word, so crawlers and screen readers get only
+// the sentence; the cycle needs no script and reduced motion skips it.
+templ homeHero(page apiclient.PortfolioPage) {
+	{{ hook := page.Portfolio.Site.Hook }}
+	<section class="pf-hero pf-hero-home" data-section="hero" aria-labelledby="hero-title">
+		<div class="pf-wrap pf-home-head">
+			<p class="pf-kicker pf-mono"><strong>{ page.Portfolio.Name }</strong></p>
+			<h1 id="hero-title" class="pf-display pf-hook" data-component="hook">
+				{ hook.Lead }
+				<span class="pf-hook-slot">
+					for _, word := range hook.Words {
+						<span class="pf-hook-pass" data-word={ word } aria-hidden="true"></span>
 					}
-				</div>
-				@terminal(site.Terminal)
-			</div>
-			<figure class="pf-diagram" data-component="diagram" aria-label="Architecture diagram: JJ at the core, routing to each featured project, fed live by X and YouTube">
-				@diagramSVG(wideDiagram(page), page, "pf-diagram-wide")
-				@diagramSVG(tallDiagram(page), page, "pf-diagram-tall")
-				@telemetryBar()
-			</figure>
+					<span class="pf-hook-final">{ hook.Final }</span>
+				</span>
+			</h1>
+			<p class="pf-lede pf-hook-line">{ hook.Line }</p>
 		</div>
 	</section>
 }
 
-templ terminal(lines []string) {
-	<div class="pf-terminal" data-component="terminal" aria-label="Status of current projects">
-		<div class="pf-terminal-bar" aria-hidden="true"><span></span><span></span><span></span><em>~/jj — zsh</em></div>
-		<ol class="pf-terminal-body">
-			for index, line := range lines {
-				<li class={ "pf-terminal-line", templ.KV("pf-terminal-cmd", index == 0) }>{ line }</li>
-			}
-			<li class="pf-terminal-line pf-terminal-cmd" aria-hidden="true">$ <span class="pf-caret"></span></li>
-		</ol>
-	</div>
+// doorways are the home page's tiles, one per area and all the same
+// shape: a figure, what it counts, and the names behind it. Until the X
+// count is known its tile shows the handle.
+templ doorways(page apiclient.PortfolioPage) {
+	{{ pages := page.Portfolio.Site.Pages }}
+	{{ products := inArea(page.Portfolio.Featured, areaSaaS) }}
+	{{ engines := inArea(page.Portfolio.Featured, areaLocalAI) }}
+	{{ runs := decodeRuns(engines) }}
+	<section class="pf-doors" data-section="doorways" aria-label="What I build">
+		<ul class="pf-wrap pf-door-list">
+			<li>
+				@doorway(navItem{Path: config.AppRoutes.SaaS, Page: pages.SaaS}, names(products)) {
+					<span class="pf-figure">{ itoa(shipped(page)) }</span>
+					<span class="pf-door-note pf-mono">{ pages.SaaS.Teaser }</span>
+				}
+			</li>
+			<li>
+				@doorway(navItem{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI}, names(engines)) {
+					if len(runs) > 0 {
+						<span class="pf-figure">{ runs[0].Rate }<small>{ rateUnit }</small></span>
+						<span class="pf-door-note pf-mono">{ runs[0].Name } · { pages.LocalAI.Teaser }</span>
+					} else {
+						<span class="pf-figure">{ itoa(len(engines)) }</span>
+					}
+				}
+			</li>
+			<li>
+				@doorway(navItem{Path: config.AppRoutes.Socials, Page: pages.Socials}, "@" + page.Portfolio.XHandle + " · " + page.Portfolio.Site.Sections.Videos.Title) {
+					<span class={ "pf-figure", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown">
+						@odometer(page.Followers.Count, pages.Socials.Teaser)
+					</span>
+					<span class={ "pf-door-note pf-mono", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown"><span class="pf-live" aria-hidden="true"></span>{ pages.Socials.Teaser } · live</span>
+					<span class={ "pf-figure", templ.KV("hidden", page.Followers.Known) } data-class:hidden="$followersKnown">{ "@" + page.Portfolio.XHandle }</span>
+				}
+			</li>
+		</ul>
+	</section>
 }
 
-// telemetryBar is decoration: published numbers the script jitters around.
-templ telemetryBar() {
-	<figcaption class="pf-telemetry" data-component="telemetry" aria-hidden="true">
-		for _, readout := range heroTelemetry {
-			<span class="pf-readout">
-				<em>{ readout.Label }</em>
-				<strong data-telemetry data-base={ readout.Base } data-jitter={ readout.Jitter } data-decimals={ readout.Decimals }>{ readout.Value }</strong>
-				<small>{ readout.Unit }</small>
-			</span>
-		}
-		<span class="pf-readout-note">published benchmarks · jitter is decoration</span>
-	</figcaption>
+// doorway is one tile: the page's number and name, its figure and what
+// the figure counts (children), and the names behind it. The whole tile is the link.
+templ doorway(item navItem, behind string) {
+	<a class="pf-door" data-component="doorway" href={ templ.SafeURL(item.Path) }>
+		<span class="pf-door-top pf-mono"><span><strong>{ item.Page.Number }</strong> { item.Page.Name }</span><span class="pf-door-arrow" aria-hidden="true">→</span></span>
+		<span class="pf-door-figure">
+			{ children... }
+		</span>
+		<span class="pf-door-text">{ behind }</span>
+	</a>
+}
+
+// localHero is the top of the local AI page: its headline and intro as
+// decode tokens, the full run panel and the stack figure.
+templ localHero(page apiclient.PortfolioPage, projects []apiclient.Project) {
+	{{ item := page.Portfolio.Site.Pages.LocalAI }}
+	{{ runs := decodeRuns(projects) }}
+	<section class="pf-hero" data-section="hero" aria-labelledby="page-title">
+		<div class="pf-wrap pf-hero-grid">
+			<div class="pf-hero-copy" data-hero>
+				<p class="pf-kicker pf-mono"><strong>{ item.Number }</strong><span>{ item.Name }</span></p>
+				<h1 id="page-title" class="pf-display pf-display-page" data-decode>
+					@tokenSpans(item.Heading)
+				</h1>
+				<p class="pf-lede" data-decode>
+					@tokenSpans(item.Intro)
+				</p>
+				if len(runs) > 0 {
+					@runPanel(runs)
+				}
+			</div>
+			@stackFigure(page, runs)
+		</div>
+	</section>
+}
+
+// runPanel replays the hero text at a published decode rate. The tabs carry
+// each run's data; portfolio.js runs the decode and fills the readout. With
+// no script the panel still states the first run and links its receipt.
+templ runPanel(runs []run) {
+	<div class="pf-run" data-component="run-panel" role="group" aria-label="Replay this text at a published decode rate">
+		<div class="pf-run-tabs">
+			for index, item := range runs {
+				<button
+					class="pf-run-tab"
+					type="button"
+					aria-pressed={ boolAttr(index == 0) }
+					data-run
+					data-rate={ item.Rate }
+					data-name={ item.Name }
+					data-label={ item.Label }
+					data-source={ item.Source }
+				>
+					<span class="pf-run-rate">{ item.Rate }</span>
+					<span class="pf-run-name">{ item.Name }</span>
+				</button>
+			}
+		</div>
+		<dl class="pf-readout">
+			<div><dt class="pf-mono">Rate</dt><dd><span data-run-rate>{ runs[0].Rate }</span> <small>{ rateUnit }</small></dd></div>
+			<div><dt class="pf-mono">Tokens</dt><dd><span data-run-done>0</span><small>/<span data-run-total>0</span></small></dd></div>
+			<div><dt class="pf-mono">Elapsed</dt><dd><span data-run-time>0.00</span> <small>s</small></dd></div>
+		</dl>
+		<div class="pf-run-foot">
+			<p class="pf-run-note">
+				<span data-run-label>{ runs[0].Label }</span>. This text replays at the published rate. It is not live inference.
+				<a data-run-source href={ templ.SafeURL(runs[0].Source) } target="_blank" rel="noopener">Receipt&nbsp;↗</a>
+			</p>
+			<div class="pf-run-actions">
+				<button class="pf-chip-button" type="button" data-replay>Replay</button>
+				<button class="pf-chip-button" type="button" data-show-tokens aria-pressed="false">Tokens</button>
+			</div>
+		</div>
+	</div>
 }

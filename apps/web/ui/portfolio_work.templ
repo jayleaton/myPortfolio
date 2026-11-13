@@ -1,83 +1,134 @@
 package ui
 
-// Section 01, featured work: one card per content.Portfolio.Featured. A
-// card shows its Image when set, otherwise its generated glyph
-// (projectVisual in portfolio_visuals.templ).
+// Featured work: one datasheet card per project of a page's area (the
+// local AI page and the SaaS page each call workSection with theirs). The left column is the copy; the right is the
+// evidence: bars when the metrics are decode rates, readouts when they do not,
+// and the highlights as numbered steps when there is no metric.
+// Receipts: every metric of those projects in one ledger.
 
-import (
-	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
-	"github.com/jayleaton/myPortfolio/apps/web/ui/static"
-)
+import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
 
-templ workSection(page apiclient.PortfolioPage) {
-	{{ section := page.Portfolio.Site.Sections.Work }}
-	<section id={ section.ID } class="pf-section" data-section="work" aria-labelledby={ section.ID + "-title" }>
+templ workSection(section apiclient.Section, projects []apiclient.Project) {
+	<section id={ section.ID } class="pf-section" data-section={ section.ID } aria-labelledby={ section.ID + "-title" }>
 		<div class="pf-wrap">
 			@sectionHead(section)
 			<ol class="pf-work">
-				for index, project := range page.Portfolio.Featured {
-					@featuredCard(index, project)
+				for index, project := range projects {
+					@featuredCard(index, len(projects), project)
 				}
 			</ol>
 		</div>
 	</section>
 }
 
-templ featuredCard(index int, project apiclient.Project) {
+templ featuredCard(index, total int, project apiclient.Project) {
 	<li id={ project.Slug } class="pf-card" data-component="project-card" data-visual={ project.Visual } data-reveal>
-		<div class="pf-card-visual" aria-hidden="true">
-			if project.Image != "" {
-				<img src={ static.Image(project.Image) } alt="" loading="lazy" decoding="async"/>
-			} else {
-				@projectVisual(project.Visual)
-			}
-			<span class="pf-card-index">{ pad2(index) }</span>
-		</div>
+		<p class="pf-card-top pf-mono">
+			<span><strong>{ pad2(index) }</strong> / { pad2(total - 1) } · { levelTag(layerOf(project)) } { layerName(project) }</span>
+			<span>{ project.Role }</span>
+		</p>
 		<div class="pf-card-body">
-			<p class="pf-card-meta">{ project.Role }</p>
-			<h3 class="pf-card-title">{ project.Name }</h3>
-			<p class="pf-card-tagline">{ project.Tagline }</p>
-			<p class="pf-card-text">{ project.Description }</p>
-			if len(project.Highlights) > 0 {
-				<ul class="pf-highlights">
-					for _, highlight := range project.Highlights {
-						<li>{ highlight }</li>
-					}
-				</ul>
-			}
-			if len(project.Metrics) > 0 {
-				@metrics(project.Metrics)
-			}
-			@tags(project.Tags)
-			<p class="pf-card-links">
-				<a class="pf-button pf-button-primary" href={ templ.SafeURL(project.URL) } target="_blank" rel="noopener">{ host(project.URL) } <span aria-hidden="true">↗</span></a>
-				if project.Repo != "" && project.Repo != project.URL {
-					<a class="pf-button" href={ templ.SafeURL(project.Repo) } target="_blank" rel="noopener">Source <span aria-hidden="true">↗</span></a>
+			<div class="pf-card-copy">
+				<h3 class="pf-card-title">{ project.Name }</h3>
+				<p class="pf-card-tagline">{ project.Tagline }</p>
+				<p class="pf-card-text">{ project.Description }</p>
+				if len(project.Metrics) > 0 && len(project.Highlights) > 0 {
+					<ul class="pf-highlights">
+						for _, highlight := range project.Highlights {
+							<li>{ highlight }</li>
+						}
+					</ul>
 				}
-			</p>
+				@tags(project.Tags)
+				<p class="pf-cta">
+					<a class="pf-button pf-button-primary" href={ templ.SafeURL(project.URL) } target="_blank" rel="noopener">{ host(project.URL) } <span aria-hidden="true">↗</span></a>
+					if project.Repo != "" && project.Repo != project.URL {
+						<a class="pf-button" href={ templ.SafeURL(project.Repo) } target="_blank" rel="noopener">Source <span aria-hidden="true">↗</span></a>
+					}
+				</p>
+			</div>
+			<div class="pf-evidence" data-component="metrics">
+				switch  {
+					case onOneAxis(project.Metrics):
+						@metricBars(project)
+					case len(project.Metrics) > 0:
+						@metricReadouts(project.Metrics)
+					default:
+						@highlightSteps(project.Highlights)
+				}
+			</div>
 		</div>
 	</li>
 }
 
-// metrics are published benchmark claims, each linked to its source.
-templ metrics(list []apiclient.Metric) {
-	<dl class="pf-metrics" data-component="metrics">
+// metricReadouts are published numbers in different units, each with what
+// it measured and its receipt.
+templ metricReadouts(list []apiclient.Metric) {
+	<p class="pf-evidence-title pf-mono"><strong>Published</strong><span>measured, not estimated</span></p>
+	<dl class="pf-readings">
 		for _, metric := range list {
-			<div class="pf-metric">
+			{{ number, unit := splitMetric(metric.Value) }}
+			<div class="pf-reading">
 				<dt>{ metric.Label }</dt>
 				<dd>
-					<strong>{ metric.Value }</strong>
-					<a href={ templ.SafeURL(metric.Source) } target="_blank" rel="noopener" class="pf-source" aria-label={ "Source for " + metric.Value + ": " + metric.Label }>source ↗</a>
+					<span class="pf-figure">{ number }<small>{ unit }</small></span>
+					@receiptLink(metric)
 				</dd>
 			</div>
 		}
 	</dl>
 }
 
+// highlightSteps shows a project with no published number: its highlights
+// as numbered steps.
+templ highlightSteps(list []string) {
+	<p class="pf-evidence-title pf-mono"><strong>How it works</strong><span>{ itoa(len(list)) } steps</span></p>
+	<ol class="pf-steps">
+		for index, highlight := range list {
+			<li><span class="pf-step-number pf-mono" aria-hidden="true">{ pad2(index) }</span><span>{ highlight }</span></li>
+		}
+	</ol>
+}
+
+// receiptLink is a metric's link to where it was published.
+templ receiptLink(metric apiclient.Metric) {
+	<a href={ templ.SafeURL(metric.Source) } target="_blank" rel="noopener" class="pf-receipt pf-mono" aria-label={ "Receipt for " + metric.Value + ": " + metric.Label }>Receipt ↗</a>
+}
+
 templ tags(list []string) {
-	<ul class="pf-tags" aria-label="Stack">
+	<ul class="pf-tags pf-mono" aria-label="Stack">
 		for _, tag := range list {
 			<li>{ tag }</li>
 		}
 	</ul>
+}
+
+templ receiptsSection(section apiclient.Section, projects []apiclient.Project) {
+	<section id={ section.ID } class="pf-section" data-section="receipts" aria-labelledby={ section.ID + "-title" }>
+		<div class="pf-wrap">
+			@sectionHead(section)
+			<table class="pf-ledger" data-component="receipts">
+				<thead class="pf-mono">
+					<tr>
+						<th scope="col">Value</th>
+						<th scope="col">What was measured</th>
+						<th scope="col">Project</th>
+						<th scope="col"><span class="pf-sr">Receipt</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, row := range receipts(projects) {
+						<tr>
+							<th scope="row"><span class="pf-figure">{ row.Number }<small>{ row.Unit }</small></span></th>
+							<td>{ row.Metric.Label }</td>
+							<td><a href={ templ.SafeURL("#" + row.Project.Slug) }>{ row.Project.Name }</a></td>
+							<td>
+								@receiptLink(row.Metric)
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</section>
 }

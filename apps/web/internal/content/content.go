@@ -25,22 +25,57 @@ type Portfolio struct {
 }
 
 // Site is the copy around the content: metadata for search and share
-// cards, and the labels of the page's sections.
+// cards, the pages and the labels of their sections.
 type Site struct {
+	// Title and Description are the home page's; the other pages use their
+	// Page's Name and Intro.
 	Title       string
 	Description string
-	// ShareTitle and ShareText are the X / Open Graph card's text.
+	// ShareTitle and ShareText are the home page's X / Open Graph card.
 	ShareTitle, ShareText string
-	// Kicker sits above the headline; Terminal is the hero's boot log.
-	Kicker   string
-	Terminal []string
+	// Hook is the home page's headline and the one line under it.
+	Hook Hook
+	// Hardware is the bottom plate of the stack figure.
+	Hardware Hardware
+	Pages    Pages
 	Sections Sections
 	Footer   string
 }
 
-// Sections are the labels of the page's sections, in page order.
+// Hardware is the machine the published numbers were measured on: its
+// name, the memory and chip of one unit, the units and the link between them.
+type Hardware struct {
+	Name, Memory, Chip, Link string
+	Units                    []string
+}
+
+// Pages are the pages the home page opens onto, in nav order.
+type Pages struct {
+	LocalAI, SaaS, Socials, Archive Page
+}
+
+// Hook is the home page's headline: Lead and Final read as one short
+// sentence ("I build" + "things."). Words pass through the last slot before
+// Final settles there, one per area of work. Line sits under the headline.
+type Hook struct {
+	Lead  string
+	Words []string
+	Final string
+	Line  string
+}
+
+// Page is one page's copy: its number and name in the nav, the headline
+// and intro at its top (the intro is also its search description) and the
+// label under the figure on its home-page tile.
+type Page struct {
+	Number, Name, Heading, Intro, Teaser string
+}
+
+// Sections are the labels of the sections inside the pages: Work and
+// Receipts on the local AI page, Products and Network on the SaaS page,
+// Uplinks and Videos on the socials page.
 type Sections struct {
-	Work, Network, Videos, Uplinks, Archive Section
+	Work, Receipts, Products, Network, Uplinks, Videos Section
 }
 
 // Section is one section's anchor, number, title and one-line intro.
@@ -56,24 +91,32 @@ type Project struct {
 	Tagline     string `json:"tagline"`
 	Description string `json:"description"`
 	Role        string `json:"role"`
-	URL         string `json:"url"`
-	Repo        string `json:"repo,omitempty"`
-	Image       string `json:"image,omitempty"`
-	// Visual picks the generated engine visual a featured card draws when
-	// it has no Image (one of the Visual* constants).
+	// Area is the page a featured project belongs to (AreaLocalAI or AreaSaaS).
+	Area  string `json:"area,omitempty"`
+	URL   string `json:"url"`
+	Repo  string `json:"repo,omitempty"`
+	Image string `json:"image,omitempty"`
+	// Visual is the kind of work (one of the Visual* constants). It places
+	// a featured project on a layer of the hero's stack figure.
 	Visual     string   `json:"visual,omitempty"`
 	Tags       []string `json:"tags"`
 	Highlights []string `json:"highlights,omitempty"`
 	Metrics    []Metric `json:"metrics,omitempty"`
 }
 
-// The generated visuals a featured card can draw.
+// The areas of featured work: each has its own page.
 const (
-	VisualTensor = "tensor" // a tensor grid folding along its diagonal
-	VisualRack   = "rack"   // a GPU rack with throughput bars
-	VisualRouter = "router" // a router fanning requests out to models
-	VisualRadar  = "radar"  // a scan sweep with findings
-	VisualFrame  = "frame"  // a camera frame around a wireframe car
+	AreaLocalAI = "local-ai" // engines, recipes and routing
+	AreaSaaS    = "saas"     // products
+)
+
+// The kinds of featured work.
+const (
+	VisualTensor = "tensor" // an inference engine: the stack's engine layer
+	VisualRack   = "rack"   // GPU recipes: the recipes layer
+	VisualRouter = "router" // model routing: the router layer
+	VisualRadar  = "radar"  // a product (security)
+	VisualFrame  = "frame"  // a product (imaging)
 )
 
 // Metric is a published, sourced number (never a live one).

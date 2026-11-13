@@ -113,6 +113,7 @@ type (
 	Video         = services.Video
 	Videos        = services.Videos
 	Section       = services.Section
+	Page          = services.Page
 )
 
 // Inputs, validated by the API (Validate runs there, not in the UI).

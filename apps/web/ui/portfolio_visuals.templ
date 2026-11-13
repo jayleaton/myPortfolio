@@ -1,131 +1,111 @@
 package ui
 
-// Decorative visuals, isolated so a designer can replace them without
-// touching data or sections: the architecture diagram (its layout is
-// computed in portfolio.go, wideDiagram / tallDiagram) and the generated
-// glyph per featured project (content.Visual* kinds). Packets move with SVG
-// animateMotion; CSS hides them under prefers-reduced-motion.
+// The drawn parts of the "Measured" design, isolated so they can be
+// replaced without touching data or sections: the stack figure (layers
+// from stackLayers in portfolio.go), the bars of an evidence panel, the
+// odometer and the X glyph. Everything moving is CSS; it stops under
+// prefers-reduced-motion. The strict CSP forbids style="", so a bar's
+// length is an SVG attribute.
 
 import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
 
-templ diagramSVG(graph diagram, page apiclient.PortfolioPage, class string) {
-	<svg class={ "pf-graph", class } viewBox={ graph.ViewBox() } role="group" aria-label="Project map">
-		for _, edge := range graph.Edges {
-			<path id={ edge.ID } d={ edge.Path } class={ "pf-edge", templ.KV("pf-edge-live", edge.Live) }></path>
-			for _, begin := range edge.Begin {
-				<circle r="3.5" class={ "pf-packet", templ.KV("pf-packet-live", edge.Live) }>
-					if edge.Reverse {
-						<animateMotion dur={ edge.Duration } begin={ begin } repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
-							<mpath href={ "#" + edge.ID }></mpath>
-						</animateMotion>
-					} else {
-						<animateMotion dur={ edge.Duration } begin={ begin } repeatCount="indefinite">
-							<mpath href={ "#" + edge.ID }></mpath>
-						</animateMotion>
-					}
-				</circle>
-			}
-		}
-		for _, feed := range graph.Feeds {
-			<a href={ templ.SafeURL(feed.Href) } class="pf-node pf-node-feed">
-				<rect x={ itoa(feed.Left) } y={ itoa(feed.Top) } width={ itoa(feed.Width) } height={ itoa(feed.Height) } rx="6"></rect>
-				<text x={ itoa(feed.Left + 14) } y={ itoa(feed.Top + feed.Height/2 + 4) } class="pf-node-label">{ feed.Label }</text>
-				if feed.Href == "#uplinks" {
-					<text x={ itoa(feed.Left + feed.Width - 14) } y={ itoa(feed.Top + feed.Height/2 + 4) } text-anchor="end" class="pf-node-live hidden" data-class:hidden="!$followersKnown" data-text="$followers.toLocaleString('en-US')">{ groupDigits(page.Followers.Count) }</text>
-				} else {
-					<text x={ itoa(feed.Left + feed.Width - 14) } y={ itoa(feed.Top + feed.Height/2 + 4) } text-anchor="end" class="pf-node-live">{ itoa(len(page.Videos.Items)) } new</text>
+// stackFigure is "Fig. 1": the layers the featured work sits on, top
+// first, over the hardware plate. Each project links to its card. The plate
+// of a project with decode runs mirrors the run selected in the hero.
+templ stackFigure(page apiclient.PortfolioPage, runs []run) {
+	{{ hardware := page.Portfolio.Site.Hardware }}
+	<figure class="pf-fig" data-component="diagram" aria-labelledby="fig-caption">
+		<figcaption id="fig-caption" class="pf-fig-head pf-mono"><strong>Fig. 1</strong><span>Where I work in the stack</span></figcaption>
+		<div class="pf-stack">
+			<span class="pf-spine" aria-hidden="true"></span>
+			<span class="pf-packets" aria-hidden="true"><span></span><span></span><span></span></span>
+			<ol class="pf-plates">
+				for _, plate := range stackLayers(page.Portfolio.Featured) {
+					<li class="pf-plate">
+						<p class="pf-plate-level pf-mono"><strong>{ levelTag(plate.Level) }</strong> { plate.Name }</p>
+						for _, project := range plate.Projects {
+							<a class={ "pf-plate-project", templ.KV("pf-plate-hot", len(projectRuns(project)) > 0) } href={ templ.SafeURL(projectHref(project)) }>
+								<span class="pf-plate-name">{ project.Name }</span>
+								@plateValue(project)
+								<span class="pf-plate-text">{ plateText(project) }</span>
+							</a>
+						}
+					</li>
 				}
-			</a>
-		}
-		for _, node := range graph.Nodes {
-			<a href={ templ.SafeURL(node.Href) } class="pf-node" data-visual={ node.Kind }>
-				<rect x={ itoa(node.Left) } y={ itoa(node.Top) } width={ itoa(node.Width) } height={ itoa(node.Height) } rx="6"></rect>
-				<rect x={ itoa(node.Left) } y={ itoa(node.Top) } width="4" height={ itoa(node.Height) } class="pf-node-tab"></rect>
-				<text x={ itoa(node.Left + 18) } y={ itoa(node.Top + node.Height/2 - 4) } class="pf-node-label">{ node.Label }</text>
-				<text x={ itoa(node.Left + 18) } y={ itoa(node.Top + node.Height/2 + 16) } class="pf-node-sub">{ node.Sub }</text>
-			</a>
-		}
-		{{ core := graph.Core }}
-		<a href={ templ.SafeURL(core.Href) } class="pf-node pf-node-core">
-			<rect x={ itoa(core.Left - 8) } y={ itoa(core.Top - 8) } width={ itoa(core.Width + 16) } height={ itoa(core.Height + 16) } rx="12" class="pf-core-halo"></rect>
-			<rect x={ itoa(core.Left) } y={ itoa(core.Top) } width={ itoa(core.Width) } height={ itoa(core.Height) } rx="8"></rect>
-			<text x={ itoa(core.Left + core.Width/2) } y={ itoa(core.Top + core.Height/2 - 2) } text-anchor="middle" class="pf-core-label">{ core.Label }</text>
-			<text x={ itoa(core.Left + core.Width/2) } y={ itoa(core.Top + core.Height/2 + 20) } text-anchor="middle" class="pf-node-sub">{ core.Sub }</text>
-		</a>
-	</svg>
+				if hardware.Name != "" {
+					<li class="pf-plate">
+						<p class="pf-plate-level pf-mono"><strong>{ levelTag(0) }</strong> { siliconLayer }</p>
+						<div class="pf-plate-project">
+							<span class="pf-plate-name">{ hardware.Name }</span>
+							<span class="pf-plate-value">{ hardware.Memory }<small>per unit · { hardware.Chip }</small></span>
+							<span class="pf-link pf-mono">
+								for index, unit := range hardware.Units {
+									if index > 0 {
+										<span class="pf-wire"><span>{ hardware.Link }</span><span class="pf-shuttle" aria-hidden="true"></span></span>
+									}
+									<span class="pf-unit">{ unit }</span>
+								}
+							</span>
+						</div>
+					</li>
+				}
+			</ol>
+		</div>
+		<p class="pf-fig-foot pf-mono">
+			if len(runs) > 0 {
+				<span>Packets rise at the selected rate</span>
+			}
+			<span>L0 → { levelTag(layerProducts) }</span>
+		</p>
+	</figure>
 }
 
-// projectVisual draws a featured project's generated glyph.
-templ projectVisual(kind string) {
-	<svg class="pf-visual" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet">
-		<rect width="320" height="180" class="pf-visual-bg"></rect>
-		<g class="pf-visual-grid">
-			for column := 0; column <= 320; column += 20 {
-				<line x1={ itoa(column) } y1="0" x2={ itoa(column) } y2="180"></line>
-			}
-			for row := 0; row <= 180; row += 20 {
-				<line x1="0" y1={ itoa(row) } x2="320" y2={ itoa(row) }></line>
-			}
-		</g>
-		switch kind {
-			case "tensor":
-				<g class="pf-visual-ink" transform="translate(160 92) skewX(-24) scale(1 .62)">
-					for row := 0; row < 6; row++ {
-						for column := 0; column < 8; column++ {
-							<rect x={ itoa(column*24 - 96) } y={ itoa(row*24 - 72) } width="20" height="20" class={ templ.KV("pf-hot", (row+column)%5 == 0), templ.KV("pf-warm", (row*column)%7 == 3) }></rect>
-						}
-					}
-				</g>
-				<path class="pf-visual-accent" d="M40 150 L280 34"></path>
-				<text x="16" y="24" class="pf-visual-text">tensor[8×6] · fold → cuda.comm</text>
-			case "rack":
-				<g class="pf-visual-ink">
-					for unit := 0; unit < 5; unit++ {
-						<rect x="28" y={ itoa(28 + unit*26) } width="120" height="20" rx="2"></rect>
-						<circle cx="40" cy={ itoa(38 + unit*26) } r="3" class="pf-hot"></circle>
-						<line x1="54" y1={ itoa(38 + unit*26) } x2="136" y2={ itoa(38 + unit*26) } class="pf-visual-dim"></line>
-					}
-				</g>
-				<g class="pf-visual-accent-fill">
-					<rect x="184" y="64" width="26" height="92"></rect>
-					<rect x="222" y="82" width="26" height="74"></rect>
-					<rect x="260" y="70" width="26" height="86"></rect>
-				</g>
-				<text x="184" y="54" class="pf-visual-text">dsk · glm · qwen</text>
-				<text x="16" y="172" class="pf-visual-text">dgx spark · tok/s</text>
-			case "router":
-				<g class="pf-visual-ink">
-					<rect x="132" y="70" width="56" height="40" rx="6"></rect>
-					for _, target := range routerTargets {
-						<circle cx={ itoa(target[0]) } cy={ itoa(target[1]) } r="12"></circle>
-						<path class="pf-visual-accent" d={ routerPath(target[0], target[1]) }></path>
-					}
-				</g>
-				<text x="16" y="24" class="pf-visual-text">chat · voice · image · video</text>
-				<text x="140" y="95" class="pf-visual-text">:mcp</text>
-			case "radar":
-				<g class="pf-visual-ink" transform="translate(160 90)">
-					<circle r="78"></circle>
-					<circle r="54"></circle>
-					<circle r="30"></circle>
-					<line x1="-84" y1="0" x2="84" y2="0" class="pf-visual-dim"></line>
-					<line x1="0" y1="-84" x2="0" y2="84" class="pf-visual-dim"></line>
-					<path d="M0 0 L78 0 A78 78 0 0 0 55 -55 Z" class="pf-visual-accent-fill pf-sweep"></path>
-					<circle cx="34" cy="-22" r="4" class="pf-hot"></circle>
-					<circle cx="-46" cy="30" r="4" class="pf-warm"></circle>
-				</g>
-				<text x="16" y="24" class="pf-visual-text">scan → evidence → repair</text>
-				<text x="16" y="172" class="pf-visual-text">recheck: armed</text>
-			default:
-				<g class="pf-visual-ink">
-					<path d="M40 28 h24 M40 28 v24 M280 28 h-24 M280 28 v24 M40 152 h24 M40 152 v-24 M280 152 h-24 M280 152 v-24" class="pf-visual-accent"></path>
-					<path d="M70 118 C82 92 104 84 134 82 L170 64 C196 60 222 64 244 84 C258 88 266 98 268 112 L268 120 L70 120 Z"></path>
-					<circle cx="112" cy="122" r="16"></circle>
-					<circle cx="230" cy="122" r="16"></circle>
-					<circle cx="112" cy="122" r="7" class="pf-hot"></circle>
-					<circle cx="230" cy="122" r="7" class="pf-hot"></circle>
-				</g>
-				<text x="16" y="24" class="pf-visual-text">wheels · wrap · stance · kit</text>
+// plateValue is a project's headline number on its plate: the selected
+// decode run when it has runs, otherwise its first published metric
+// (plateText says what that one measured).
+templ plateValue(project apiclient.Project) {
+	if list := projectRuns(project); len(list) > 0 {
+		<span class="pf-plate-value"><span data-run-rate>{ list[0].Rate }</span><small>{ rateUnit } · <span data-run-name>{ list[0].Name }</span></small></span>
+	} else if len(project.Metrics) > 0 {
+		<span class="pf-plate-value">{ project.Metrics[0].Value }</span>
+	}
+}
+
+// metricBars draws decode rates (onOneAxis) on one axis, each with its
+// conditions and receipt. Values are direct labels; the bar only compares.
+templ metricBars(project apiclient.Project) {
+	{{ limit := axisMax(project.Metrics) }}
+	{{ _, axisUnit := splitMetric(project.Metrics[0].Value) }}
+	<p class="pf-evidence-title pf-mono"><strong>Published results</strong><span>{ axisUnit }</span></p>
+	<div class="pf-meters">
+		for _, metric := range project.Metrics {
+			{{ number, unit := splitMetric(metric.Value) }}
+			<div class="pf-meter-row">
+				<p class="pf-meter-top"><span class="pf-meter-name">{ subject(project, metric) }</span><span class="pf-figure">{ number }<small>{ unit }</small></span></p>
+				<svg class="pf-meter" viewBox={ barBox(limit) } preserveAspectRatio="none" aria-hidden="true"><rect width={ barWidth(metric) } height={ itoa(barHeight) }></rect></svg>
+				<p class="pf-meter-caption">
+					<span>{ metric.Label }</span>
+					@receiptLink(metric)
+				</p>
+			</div>
 		}
-	</svg>
+	</div>
+	<p class="pf-axis pf-mono" aria-hidden="true">
+		for _, label := range axisLabels(limit) {
+			<span>{ label }</span>
+		}
+	</p>
+	<p class="pf-evidence-note">Conditions differ per row. These are receipts, not a ranking.</p>
+}
+
+// odometer is the live X follower count. The server renders the number;
+// Datastar keeps data-target on the $followers signal and portfolio.js
+// rolls one column per digit to it. Screen readers get the plain text.
+templ odometer(count int, unit string) {
+	<span class="pf-odo" data-odo data-attr:data-target="$followers" aria-hidden="true">{ groupDigits(count) }</span>
+	<span class="pf-sr" data-text={ "$followers.toLocaleString('en-US') + ' " + unit + "'" }>{ groupDigits(count) } { unit }</span>
+}
+
+templ xGlyph() {
+	<svg class="pf-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
 }
