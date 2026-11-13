@@ -187,22 +187,102 @@ func projectHref(project apiclient.Project) string {
 	return path + "#" + project.Slug
 }
 
-// shipped counts the products and sites that are live: the featured SaaS
+// doorRow is one line of a home tile's detail panel: a name, one line
+// about it and where it goes.
+type doorRow struct {
+	Name, Detail, URL string
+}
+
+// shippedRows are the products and sites that are live: the featured SaaS
 // products and the network's entries. A network entry that is one of the
 // social profiles (the YouTube channel) is a channel, not a product or
-// site, so it is not counted.
-func shipped(page apiclient.PortfolioPage) int {
+// site, so it is left out.
+func shippedRows(page apiclient.PortfolioPage) []doorRow {
 	profiles := make(map[string]bool, len(page.Portfolio.Socials))
 	for _, link := range page.Portfolio.Socials {
 		profiles[link.URL] = true
 	}
-	count := len(inArea(page.Portfolio.Featured, areaSaaS))
+	var out []doorRow
+	for _, project := range inArea(page.Portfolio.Featured, areaSaaS) {
+		out = append(out, doorRow{Name: project.Name, Detail: project.Tagline, URL: project.URL})
+	}
 	for _, link := range page.Portfolio.Network {
 		if !profiles[link.URL] {
-			count++
+			out = append(out, doorRow{Name: link.Name, Detail: link.Description, URL: link.URL})
 		}
 	}
-	return count
+	return out
+}
+
+// engineRow is one local AI project in its tile's panel: its headline
+// metrics, each linking to its receipt, and one line about it.
+type engineRow struct {
+	Project apiclient.Project
+	Metrics []apiclient.Metric
+	Detail  string
+}
+
+// engineRows give each local AI project its headline metrics: every decode
+// rate it publishes, or else its first metric. With one metric the line
+// under the name says what was measured and how; with several it is the
+// tagline.
+func engineRows(projects []apiclient.Project) []engineRow {
+	out := make([]engineRow, 0, len(projects))
+	for _, project := range projects {
+		row := engineRow{Project: project, Detail: project.Tagline}
+		for _, metric := range project.Metrics {
+			if _, unit := splitMetric(metric.Value); unit == rateUnit {
+				row.Metrics = append(row.Metrics, metric)
+			}
+		}
+		if len(row.Metrics) == 0 && len(project.Metrics) > 0 {
+			row.Metrics = project.Metrics[:1]
+		}
+		if len(row.Metrics) == 1 {
+			row.Detail = row.Metrics[0].Label
+		}
+		out = append(out, row)
+	}
+	return out
+}
+
+// metricNumber and metricUnit are the two halves of a metric's value.
+func metricNumber(metric apiclient.Metric) string {
+	number, _ := splitMetric(metric.Value)
+	return number
+}
+
+func metricUnit(metric apiclient.Metric) string {
+	_, unit := splitMetric(metric.Value)
+	return unit
+}
+
+// The profiles in the build-in-public tile's panel, in order. X shows the
+// live count and YouTube the latest video, so they have their own rows.
+const (
+	socialX       = "X"
+	socialYouTube = "YouTube"
+)
+
+var doorProfiles = []string{"GitHub", "Buy Me a Coffee"}
+
+// profileRows are the plain profile rows of the build-in-public panel.
+func profileRows(links []apiclient.Link) []doorRow {
+	var out []doorRow
+	for _, name := range doorProfiles {
+		if link := socialFor(links, name); link.URL != "" {
+			out = append(out, doorRow{Name: link.Name, Detail: link.Description, URL: link.URL})
+		}
+	}
+	return out
+}
+
+// latestVideo is the newest upload the fetcher has, if any.
+func latestVideo(page apiclient.PortfolioPage) (apiclient.Video, bool) {
+	if len(page.Videos.Items) == 0 {
+		return apiclient.Video{}, false
+	}
+	return page.Videos.Items[0], true
 }
 
 // names joins the projects' names for a one-line summary.
@@ -529,7 +609,7 @@ func socialFor(links []apiclient.Link, name string) apiclient.Link {
 func otherSocials(links []apiclient.Link) []apiclient.Link {
 	out := make([]apiclient.Link, 0, len(links))
 	for _, link := range links {
-		if link.Name != "X" {
+		if link.Name != socialX {
 			out = append(out, link)
 		}
 	}
