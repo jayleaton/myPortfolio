@@ -24,7 +24,7 @@ templ stackFigure(page apiclient.PortfolioPage, runs []run) {
 					<li class="pf-plate">
 						<p class="pf-plate-level pf-mono"><strong>{ levelTag(plate.Level) }</strong> { plate.Name }</p>
 						for _, project := range plate.Projects {
-							<a class={ "pf-plate-project", templ.KV("pf-plate-hot", len(projectRuns(project)) > 0) } href={ templ.SafeURL("#" + project.Slug) }>
+							<a class={ "pf-plate-project", templ.KV("pf-plate-hot", len(projectRuns(project)) > 0) } href={ templ.SafeURL(projectHref(project)) }>
 								<span class="pf-plate-name">{ project.Name }</span>
 								@plateValue(project)
 								<span class="pf-plate-text">{ plateText(project) }</span>

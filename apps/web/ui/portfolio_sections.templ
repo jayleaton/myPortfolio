@@ -1,9 +1,9 @@
 package ui
 
-// Sections 03 to 06: the network (backlinks), the latest YouTube videos
-// (fetched and cached server-side), contact with the live X follower count
-// (Datastar signals followers / followersKnown, streamed from
-// routes.LiveFollowers), and the archive.
+// The remaining sections: the network (backlinks, on the SaaS page), the
+// live X follower count with the other profiles and the latest YouTube
+// videos (the socials page; Datastar signals followers / followersKnown,
+// streamed from routes.LiveFollowers), and the archive page's list.
 
 import (
 	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
@@ -96,10 +96,8 @@ templ uplinksSection(page apiclient.PortfolioPage) {
 }
 
 templ archiveSection(page apiclient.PortfolioPage) {
-	{{ section := page.Portfolio.Site.Sections.Archive }}
-	<section id={ section.ID } class="pf-section" data-section="archive" aria-labelledby={ section.ID + "-title" }>
+	<section class="pf-section" data-section="archive" aria-label="Projects">
 		<div class="pf-wrap">
-			@sectionHead(section)
 			<ul class="pf-archive">
 				for _, project := range page.Portfolio.Archive {
 					<li class="pf-archived" data-component="archive-item">

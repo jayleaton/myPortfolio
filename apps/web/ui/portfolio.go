@@ -14,6 +14,7 @@ import (
 	"github.com/starfederation/datastar-go/datastar"
 
 	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
 	"github.com/jayleaton/myPortfolio/apps/web/ui/static"
 )
 
@@ -22,13 +23,30 @@ import (
 // minutes), so a short poll only bounds how late a new count shows.
 const liveFollowersPoll = 20 * time.Second
 
-func (ui *UI) home(writer http.ResponseWriter, request *http.Request, _ apiclient.Caller) {
-	page, err := ui.api.Portfolio(request.Context())
-	if err != nil {
-		ui.apiFailed(writer, request, err)
-		return
+// portfolioView renders one of the portfolio's pages from the page data.
+type portfolioView func(page apiclient.PortfolioPage, meta ShareMeta) templ.Component
+
+// portfolioPage is the handler of the portfolio page at path. Every page
+// renders from the same in-memory data (apiclient.Portfolio), so none of
+// them waits on X or YouTube.
+func (ui *UI) portfolioPage(path string, view portfolioView) handlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request, _ apiclient.Caller) {
+		page, err := ui.api.Portfolio(request.Context())
+		if err != nil {
+			ui.apiFailed(writer, request, err)
+			return
+		}
+		ui.render(writer, request, http.StatusOK, view(page, ui.shareMeta(request, page, path)))
 	}
-	ui.render(writer, request, http.StatusOK, PortfolioPage(page, ui.shareMeta(request, page)))
+}
+
+// portfolioRoutes registers the portfolio's pages.
+func (ui *UI) portfolioRoutes(page func(apiclient.Policy, string, handlerFunc)) {
+	page(apiclient.Public, "GET /{$}", ui.portfolioPage(config.AppRoutes.Home, HomePage))
+	page(apiclient.Public, "GET "+config.AppRoutes.LocalAI, ui.portfolioPage(config.AppRoutes.LocalAI, LocalAIPage))
+	page(apiclient.Public, "GET "+config.AppRoutes.SaaS, ui.portfolioPage(config.AppRoutes.SaaS, SaaSPage))
+	page(apiclient.Public, "GET "+config.AppRoutes.Socials, ui.portfolioPage(config.AppRoutes.Socials, SocialsPage))
+	page(apiclient.Public, "GET "+config.AppRoutes.Archive, ui.portfolioPage(config.AppRoutes.Archive, ArchivePage))
 }
 
 // followerSignals are the Datastar signals the follower count binds to.
@@ -79,11 +97,16 @@ func (ui *UI) robots(writer http.ResponseWriter, _ *http.Request) {
 	_, _ = fmt.Fprint(writer, "User-agent: *\nAllow: /\n")
 }
 
-// ShareMeta is what search engines and share cards (X, Open Graph) read.
+// ShareMeta is what search engines and share cards (X, Open Graph) read
+// about the page at Path: its own title, description and canonical URL.
 type ShareMeta struct {
-	Canonical string
-	Image     string
-	XHandle   string
+	Path               string
+	Title, Description string
+	// ShareTitle and ShareText are the card's text.
+	ShareTitle, ShareText string
+	Canonical             string
+	Image                 string
+	XHandle               string
 }
 
 // ogImageWidth and ogImageHeight are static.OGImageFile's size, the
@@ -93,9 +116,11 @@ const (
 	ogImageHeight = 630
 )
 
-// shareMeta builds absolute URLs from PublicURL (share cards need them),
-// or from the request's host when it is unset.
-func (ui *UI) shareMeta(request *http.Request, page apiclient.PortfolioPage) ShareMeta {
+// shareMeta is the metadata of the page at path. It builds absolute URLs
+// from PublicURL (share cards need them), or from the request's host when
+// it is unset. The home page uses the site's own title and card text; any
+// other page is named after its nav entry and described by its intro.
+func (ui *UI) shareMeta(request *http.Request, page apiclient.PortfolioPage, path string) ShareMeta {
 	origin := ui.site
 	if origin == nil {
 		scheme := "http"
@@ -105,7 +130,70 @@ func (ui *UI) shareMeta(request *http.Request, page apiclient.PortfolioPage) Sha
 		origin = &url.URL{Scheme: scheme, Host: request.Host}
 	}
 	base := strings.TrimSuffix(origin.String(), "/")
-	return ShareMeta{Canonical: base + "/", Image: base + static.URL(static.OGImageFile), XHandle: page.Portfolio.XHandle}
+	site := page.Portfolio.Site
+	meta := ShareMeta{
+		Path: path, Title: site.Title, Description: site.Description, ShareTitle: site.ShareTitle, ShareText: site.ShareText,
+		Canonical: base + path, Image: base + static.URL(static.OGImageFile), XHandle: page.Portfolio.XHandle,
+	}
+	for _, item := range navPages(page) {
+		if item.Path == path {
+			meta.Title = item.Page.Name + " · " + page.Portfolio.Name
+			meta.Description, meta.ShareTitle, meta.ShareText = item.Page.Intro, meta.Title, item.Page.Intro
+		}
+	}
+	return meta
+}
+
+// navItem is one page in the nav: where it lives and its copy.
+type navItem struct {
+	Path string
+	Page apiclient.Page
+}
+
+// navPages are the pages beside home, in nav order.
+func navPages(page apiclient.PortfolioPage) []navItem {
+	pages := page.Portfolio.Site.Pages
+	return []navItem{
+		{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI},
+		{Path: config.AppRoutes.SaaS, Page: pages.SaaS},
+		{Path: config.AppRoutes.Socials, Page: pages.Socials},
+		{Path: config.AppRoutes.Archive, Page: pages.Archive},
+	}
+}
+
+// The areas of featured work (content.Area*): each has its own page.
+const (
+	areaLocalAI = "local-ai"
+	areaSaaS    = "saas"
+)
+
+// inArea are the featured projects of one area, in content order.
+func inArea(featured []apiclient.Project, area string) []apiclient.Project {
+	var out []apiclient.Project
+	for _, project := range featured {
+		if project.Area == area {
+			out = append(out, project)
+		}
+	}
+	return out
+}
+
+// projectHref is a featured project's card: the page of its area, at its slug.
+func projectHref(project apiclient.Project) string {
+	path := config.AppRoutes.LocalAI
+	if project.Area == areaSaaS {
+		path = config.AppRoutes.SaaS
+	}
+	return path + "#" + project.Slug
+}
+
+// names joins the projects' names for a one-line summary.
+func names(projects []apiclient.Project) string {
+	out := make([]string, 0, len(projects))
+	for _, project := range projects {
+		out = append(out, project.Name)
+	}
+	return strings.Join(out, " · ")
 }
 
 // The "Measured" view: the helpers below turn the content's projects and
@@ -373,12 +461,6 @@ func receipts(featured []apiclient.Project) []receipt {
 	return out
 }
 
-// navSections are the page's sections in the order the nav lists them.
-func navSections(page apiclient.PortfolioPage) []apiclient.Section {
-	sections := page.Portfolio.Site.Sections
-	return []apiclient.Section{sections.Work, sections.Receipts, sections.Network, sections.Videos, sections.Uplinks, sections.Archive}
-}
-
 // Small formatting helpers for the templates.
 
 func itoa(value int) string { return strconv.Itoa(value) }
@@ -457,4 +539,13 @@ func personLD(page apiclient.PortfolioPage, meta ShareMeta) map[string]any {
 		"description": page.Portfolio.Bio,
 		"sameAs":      sameAs,
 	}
+}
+
+// ogType is the page's Open Graph type: the home page is the person's
+// profile, the others are pages of the site.
+func ogType(meta ShareMeta) string {
+	if meta.Path == config.AppRoutes.Home {
+		return "profile"
+	}
+	return "website"
 }

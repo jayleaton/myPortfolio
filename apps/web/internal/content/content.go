@@ -25,16 +25,19 @@ type Portfolio struct {
 }
 
 // Site is the copy around the content: metadata for search and share
-// cards, and the labels of the page's sections.
+// cards, the pages and the labels of their sections.
 type Site struct {
+	// Title and Description are the home page's; the other pages use their
+	// Page's Name and Intro.
 	Title       string
 	Description string
-	// ShareTitle and ShareText are the X / Open Graph card's text.
+	// ShareTitle and ShareText are the home page's X / Open Graph card.
 	ShareTitle, ShareText string
-	// Kicker sits above the headline.
+	// Kicker sits above the home page's headline.
 	Kicker string
-	// Hardware is the bottom plate of the hero's stack figure.
+	// Hardware is the bottom plate of the stack figure.
 	Hardware Hardware
+	Pages    Pages
 	Sections Sections
 	Footer   string
 }
@@ -46,9 +49,23 @@ type Hardware struct {
 	Units                    []string
 }
 
-// Sections are the labels of the page's sections, in page order.
+// Pages are the pages the home page opens onto, in nav order.
+type Pages struct {
+	LocalAI, SaaS, Socials, Archive Page
+}
+
+// Page is one page's copy: its number and name in the nav, the headline
+// and intro at its top (the intro is also its search description) and the
+// line on its home-page tile.
+type Page struct {
+	Number, Name, Heading, Intro, Teaser string
+}
+
+// Sections are the labels of the sections inside the pages: Work and
+// Receipts on the local AI page, Products and Network on the SaaS page,
+// Uplinks and Videos on the socials page.
 type Sections struct {
-	Work, Receipts, Network, Videos, Uplinks, Archive Section
+	Work, Receipts, Products, Network, Uplinks, Videos Section
 }
 
 // Section is one section's anchor, number, title and one-line intro.
@@ -64,9 +81,11 @@ type Project struct {
 	Tagline     string `json:"tagline"`
 	Description string `json:"description"`
 	Role        string `json:"role"`
-	URL         string `json:"url"`
-	Repo        string `json:"repo,omitempty"`
-	Image       string `json:"image,omitempty"`
+	// Area is the page a featured project belongs to (AreaLocalAI or AreaSaaS).
+	Area  string `json:"area,omitempty"`
+	URL   string `json:"url"`
+	Repo  string `json:"repo,omitempty"`
+	Image string `json:"image,omitempty"`
 	// Visual is the kind of work (one of the Visual* constants). It places
 	// a featured project on a layer of the hero's stack figure.
 	Visual     string   `json:"visual,omitempty"`
@@ -74,6 +93,12 @@ type Project struct {
 	Highlights []string `json:"highlights,omitempty"`
 	Metrics    []Metric `json:"metrics,omitempty"`
 }
+
+// The areas of featured work: each has its own page.
+const (
+	AreaLocalAI = "local-ai" // engines, recipes and routing
+	AreaSaaS    = "saas"     // products
+)
 
 // The kinds of featured work.
 const (

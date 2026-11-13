@@ -99,7 +99,7 @@ func (ui *UI) Routes(mux Mux) {
 		http.Redirect(writer, request, static.URL(static.FaviconFile), http.StatusMovedPermanently)
 	}))
 
-	page(apiclient.Public, "GET /{$}", ui.home)
+	ui.portfolioRoutes(page)
 	page(apiclient.Public, "GET "+routes.LiveFollowers, ui.liveFollowers)
 	mux.Handle("GET "+routes.Robots, http.HandlerFunc(ui.robots))
 	if ui.features.AccountPages {

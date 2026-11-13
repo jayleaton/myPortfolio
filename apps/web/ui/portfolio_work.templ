@@ -1,21 +1,20 @@
 package ui
 
-// Section 01, featured work: one datasheet card per
-// content.Portfolio.Featured. The left column is the copy; the right is the
+// Featured work: one datasheet card per project of a page's area (the
+// local AI page and the SaaS page each call workSection with theirs). The left column is the copy; the right is the
 // evidence: bars when the metrics are decode rates, readouts when they do not,
 // and the highlights as numbered steps when there is no metric.
-// Section 02, receipts: every featured metric in one ledger.
+// Receipts: every metric of those projects in one ledger.
 
 import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
 
-templ workSection(page apiclient.PortfolioPage) {
-	{{ section := page.Portfolio.Site.Sections.Work }}
-	<section id={ section.ID } class="pf-section" data-section="work" aria-labelledby={ section.ID + "-title" }>
+templ workSection(section apiclient.Section, projects []apiclient.Project) {
+	<section id={ section.ID } class="pf-section" data-section={ section.ID } aria-labelledby={ section.ID + "-title" }>
 		<div class="pf-wrap">
 			@sectionHead(section)
 			<ol class="pf-work">
-				for index, project := range page.Portfolio.Featured {
-					@featuredCard(index, len(page.Portfolio.Featured), project)
+				for index, project := range projects {
+					@featuredCard(index, len(projects), project)
 				}
 			</ol>
 		</div>
@@ -104,8 +103,7 @@ templ tags(list []string) {
 	</ul>
 }
 
-templ receiptsSection(page apiclient.PortfolioPage) {
-	{{ section := page.Portfolio.Site.Sections.Receipts }}
+templ receiptsSection(section apiclient.Section, projects []apiclient.Project) {
 	<section id={ section.ID } class="pf-section" data-section="receipts" aria-labelledby={ section.ID + "-title" }>
 		<div class="pf-wrap">
 			@sectionHead(section)
@@ -119,7 +117,7 @@ templ receiptsSection(page apiclient.PortfolioPage) {
 					</tr>
 				</thead>
 				<tbody>
-					for _, row := range receipts(page.Portfolio.Featured) {
+					for _, row := range receipts(projects) {
 						<tr>
 							<th scope="row"><span class="pf-figure">{ row.Number }<small>{ row.Unit }</small></span></th>
 							<td>{ row.Metric.Label }</td>

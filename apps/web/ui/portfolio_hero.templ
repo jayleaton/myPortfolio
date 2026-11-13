@@ -1,30 +1,124 @@
 package ui
 
-// The hero: kicker, the headline and bio as decode tokens, calls to action,
-// the run panel (replays the text at a published decode rate) and the stack
-// figure (stackFigure in portfolio_visuals.templ).
+// The tops of the two pages that replay their text: the home page's hero
+// with a compact replay strip and the doorway tiles under it, and the
+// local AI page's hero with the full run panel beside the stack figure
+// (stackFigure in portfolio_visuals.templ).
 
-import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+import (
+	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
+)
 
-templ hero(page apiclient.PortfolioPage) {
+// homeHero is the headline and one line of bio as decode tokens, and the
+// replay strip.
+templ homeHero(page apiclient.PortfolioPage) {
 	{{ site := page.Portfolio.Site }}
 	{{ runs := decodeRuns(page.Portfolio.Featured) }}
-	<section class="pf-hero" data-section="hero" aria-labelledby="hero-title">
+	<section class="pf-hero pf-hero-home" data-section="hero" aria-labelledby="hero-title">
+		<div class="pf-wrap pf-home-head" data-hero>
+			<p class="pf-kicker pf-mono"><strong>{ page.Portfolio.Name }</strong><span>{ site.Kicker }</span></p>
+			<h1 id="hero-title" class="pf-display" data-decode>
+				@tokenSpans(page.Portfolio.Headline)
+			</h1>
+			<p class="pf-lede" data-decode>
+				@tokenSpans(lede(page.Portfolio.Headline, page.Portfolio.Bio))
+			</p>
+			if len(runs) > 0 {
+				@runStrip(runs)
+			}
+		</div>
+	</section>
+}
+
+// runStrip is the compact replay: one chip showing the rate the text
+// replays at. Pressing it replays at the next published rate. The hidden
+// [data-run] elements carry the runs for portfolio.js; with no script the
+// strip is not shown.
+templ runStrip(runs []run) {
+	<div class="pf-strip" data-component="run-strip" role="group" aria-label="Replay this text at a published decode rate">
+		for _, item := range runs {
+			<span hidden data-run data-rate={ item.Rate } data-name={ item.Name } data-label={ item.Label } data-source={ item.Source }></span>
+		}
+		<button class="pf-strip-chip" type="button" data-run-next>
+			<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2v3h-3"></path></svg>
+			<span class="pf-strip-rate"><span data-run-rate>{ runs[0].Rate }</span> <small>{ rateUnit }</small></span>
+			<span class="pf-strip-name pf-mono" data-run-name>{ runs[0].Name }</span>
+			<span class="pf-sr">Replay at the next published rate</span>
+		</button>
+		<p class="pf-strip-read pf-mono"><span data-run-done>0</span>/<span data-run-total>0</span> tokens · <span data-run-time>0.00</span> s</p>
+		<button class="pf-chip-button" type="button" data-show-tokens aria-pressed="false">Tokens</button>
+		<p class="pf-strip-note">
+			Replayed at a published rate, not live inference.
+			<a data-run-source href={ templ.SafeURL(runs[0].Source) } target="_blank" rel="noopener">Receipt&nbsp;↗</a>
+		</p>
+	</div>
+}
+
+// doorways are the home page's tiles: one per section, each with one
+// number or line. The local AI tile mirrors the rate selected in the
+// strip; the socials tile is the live X count.
+templ doorways(page apiclient.PortfolioPage) {
+	{{ pages := page.Portfolio.Site.Pages }}
+	{{ runs := decodeRuns(page.Portfolio.Featured) }}
+	<section class="pf-doors" data-section="doorways" aria-label="Sections">
+		<ul class="pf-wrap pf-door-list">
+			<li>
+				@doorway(navItem{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI}) {
+					if len(runs) > 0 {
+						<span class="pf-figure"><span data-run-rate>{ runs[0].Rate }</span><small>{ rateUnit }</small></span>
+						<span class="pf-door-note pf-mono"><span data-run-name>{ runs[0].Name }</span> · published decode rate</span>
+					} else {
+						<span class="pf-door-names">{ names(inArea(page.Portfolio.Featured, areaLocalAI)) }</span>
+					}
+				}
+			</li>
+			<li>
+				@doorway(navItem{Path: config.AppRoutes.SaaS, Page: pages.SaaS}) {
+					<span class="pf-door-names">{ names(inArea(page.Portfolio.Featured, areaSaaS)) }</span>
+					<span class="pf-door-note pf-mono">+ { itoa(len(page.Portfolio.Network)) } in the network</span>
+				}
+			</li>
+			<li>
+				@doorway(navItem{Path: config.AppRoutes.Socials, Page: pages.Socials}) {
+					<span class={ "pf-figure", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown">
+						@odometer(page.Followers.Count, "followers on X")
+					</span>
+					<span class={ "pf-door-note pf-mono", templ.KV("hidden", !page.Followers.Known) } data-class:hidden="!$followersKnown"><span class="pf-live" aria-hidden="true"></span>followers on X · live</span>
+					<span class={ "pf-door-names", templ.KV("hidden", page.Followers.Known) } data-class:hidden="$followersKnown">{ "@" + page.Portfolio.XHandle }</span>
+				}
+			</li>
+		</ul>
+	</section>
+}
+
+// doorway is one tile: the page's number and name, its figure (children)
+// and its teaser. The whole tile is the link.
+templ doorway(item navItem) {
+	<a class="pf-door" data-component="doorway" href={ templ.SafeURL(item.Path) }>
+		<span class="pf-door-top pf-mono"><span><strong>{ item.Page.Number }</strong> { item.Page.Name }</span><span class="pf-door-arrow" aria-hidden="true">→</span></span>
+		<span class="pf-door-figure">
+			{ children... }
+		</span>
+		<span class="pf-door-text">{ item.Page.Teaser }</span>
+	</a>
+}
+
+// localHero is the top of the local AI page: its headline and intro as
+// decode tokens, the full run panel and the stack figure.
+templ localHero(page apiclient.PortfolioPage, projects []apiclient.Project) {
+	{{ item := page.Portfolio.Site.Pages.LocalAI }}
+	{{ runs := decodeRuns(projects) }}
+	<section class="pf-hero" data-section="hero" aria-labelledby="page-title">
 		<div class="pf-wrap pf-hero-grid">
 			<div class="pf-hero-copy" data-hero>
-				<p class="pf-kicker pf-mono"><strong>{ page.Portfolio.Name }</strong><span>{ site.Kicker }</span></p>
-				<h1 id="hero-title" class="pf-display" data-decode>
-					@tokenSpans(page.Portfolio.Headline)
+				<p class="pf-kicker pf-mono"><strong>{ item.Number }</strong><span>{ item.Name }</span></p>
+				<h1 id="page-title" class="pf-display pf-display-page" data-decode>
+					@tokenSpans(item.Heading)
 				</h1>
 				<p class="pf-lede" data-decode>
-					@tokenSpans(lede(page.Portfolio.Headline, page.Portfolio.Bio))
+					@tokenSpans(item.Intro)
 				</p>
-				<div class="pf-cta">
-					<a class="pf-button pf-button-primary" href={ templ.SafeURL("#" + site.Sections.Work.ID) }>See the work <span aria-hidden="true">↓</span></a>
-					if github := socialFor(page.Portfolio.Socials, "GitHub"); github.URL != "" {
-						<a class="pf-button" href={ templ.SafeURL(github.URL) } target="_blank" rel="me noopener">GitHub <span aria-hidden="true">↗</span></a>
-					}
-				</div>
 				if len(runs) > 0 {
 					@runPanel(runs)
 				}

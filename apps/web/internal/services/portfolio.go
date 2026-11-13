@@ -23,6 +23,7 @@ type (
 	Video     = content.Video
 	Site      = content.Site
 	Section   = content.Section
+	Page      = content.Page
 	// CacheEntry is one persisted cache row (last good live values).
 	CacheEntry = model.CacheEntry
 )

@@ -15,6 +15,7 @@ var portfolio = Portfolio{
 	Featured: []Project{
 		{
 			Slug:        "tensorfold",
+			Area:        AreaLocalAI,
 			Visual:      VisualTensor,
 			Name:        "TensorFold",
 			Tagline:     "Native inference. Work that reaches the engine.",
@@ -39,6 +40,7 @@ var portfolio = Portfolio{
 		},
 		{
 			Slug:        "dgx-spark-recipes",
+			Area:        AreaLocalAI,
 			Visual:      VisualRack,
 			Name:        "DGX Spark recipes",
 			Tagline:     "DeepSeek, GLM, and Qwen. Measured on real hardware.",
@@ -66,6 +68,7 @@ var portfolio = Portfolio{
 		},
 		{
 			Slug:        "localrouter",
+			Area:        AreaLocalAI,
 			Visual:      VisualRouter,
 			Name:        "LocalRouter",
 			Tagline:     "Your GPU. Your models. One router.",
@@ -91,6 +94,7 @@ var portfolio = Portfolio{
 		},
 		{
 			Slug:        "lockpick",
+			Area:        AreaSaaS,
 			Visual:      VisualRadar,
 			Name:        "Lockpick.app",
 			Tagline:     "Find the exposure. Make the repair. Check it again.",
@@ -111,6 +115,7 @@ var portfolio = Portfolio{
 		},
 		{
 			Slug:        "autovisuals",
+			Area:        AreaSaaS,
 			Visual:      VisualFrame,
 			Name:        "AutoVisuals.io",
 			Tagline:     "See the car before you buy the parts.",
@@ -244,13 +249,19 @@ var portfolio = Portfolio{
 			Link:   "CX7 · 200 Gb/s",
 			Units:  []string{"Spark A", "Spark B"},
 		},
+		Pages: Pages{
+			LocalAI: Page{Number: "01", Name: "Local AI", Heading: "Engines, recipes and a router. All measured.", Intro: "I contribute to the TensorFold inference engine, publish DGX Spark recipes for DeepSeek, GLM and Qwen, and build LocalRouter. Every number links to its receipt.", Teaser: "TensorFold, DGX Spark recipes and LocalRouter."},
+			SaaS:    Page{Number: "02", Name: "SaaS", Heading: "Products built to be used.", Intro: "Lockpick and AutoVisuals, plus the smaller products and companies I run.", Teaser: "Plus the smaller products and companies I run."},
+			Socials: Page{Number: "03", Name: "Socials", Heading: "Follow along, or get in touch.", Intro: "Where I post what I am building, the Build Things channel, and the ways to work with me or support the work.", Teaser: "X, YouTube, GitHub and ways to work with me."},
+			Archive: Page{Number: "04", Name: "Archive", Heading: "Earlier work, kept for the record.", Intro: "Production work at Global Poker and my bootcamp projects.", Teaser: "Earlier work, kept for the record."},
+		},
 		Sections: Sections{
-			Work:     Section{ID: "work", Number: "01", Title: "Featured work", Intro: "What I am building and contributing to right now. Every number links to its receipt."},
+			Work:     Section{ID: "work", Number: "01", Title: "Projects", Intro: "What I am building and contributing to right now."},
 			Receipts: Section{ID: "numbers", Number: "02", Title: "Receipts", Intro: "Every published number on this page, with what was measured and where to check it."},
-			Network:  Section{ID: "network", Number: "03", Title: "Network", Intro: "Products and companies I run. Small, fast, useful."},
-			Videos:   Section{ID: "videos", Number: "04", Title: "Build Things", Intro: "I build in public on YouTube. The latest uploads, fetched live."},
-			Uplinks:  Section{ID: "uplinks", Number: "05", Title: "Contact", Intro: "Follow along, hire me, or buy me a coffee."},
-			Archive:  Section{ID: "archive", Number: "06", Title: "Archive", Intro: "Earlier work, kept for the record."},
+			Products: Section{ID: "products", Number: "01", Title: "Products", Intro: "What I am building for people to use."},
+			Network:  Section{ID: "network", Number: "02", Title: "Network", Intro: "Products and companies I run. Small, fast, useful."},
+			Uplinks:  Section{ID: "uplinks", Number: "01", Title: "Find me", Intro: "Follow along, hire me, or buy me a coffee."},
+			Videos:   Section{ID: "videos", Number: "02", Title: "Build Things", Intro: "I build in public on YouTube. The latest uploads, fetched live."},
 		},
 		Footer: "Served by one static Go binary: Go, templ and Datastar.",
 	},

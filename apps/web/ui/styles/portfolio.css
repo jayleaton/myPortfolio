@@ -62,7 +62,9 @@
   --pf-size-2xl: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
   --pf-size-figure: 2rem;
   --pf-size-count: clamp(3.5rem, 2rem + 7vw, 6rem);
-  --pf-size-display: clamp(2.5rem, 1.35rem + 4.9vw, 4.5rem);
+  --pf-size-door: clamp(3rem, 2rem + 3.4vw, 4.75rem); /* a doorway tile's figure */
+  --pf-size-display: clamp(2.5rem, 1.2rem + 5.4vw, 5.25rem); /* the home headline */
+  --pf-size-display-page: clamp(2rem, 1.3rem + 3vw, 3.5rem); /* the other pages' headlines */
   --pf-leading: 1.55;
   --pf-leading-display: 0.96;
   --pf-tracking-mono: 0.04em;
@@ -332,8 +334,17 @@ a:hover > .pf-button-primary {
   color: var(--pf-faint);
 }
 .pf-nav a:hover,
-.pf-menu-panel a:hover {
+.pf-menu-panel a:hover,
+.pf-nav a[aria-current],
+.pf-menu-panel a[aria-current] {
   color: var(--pf-text);
+}
+.pf-nav a[aria-current] span,
+.pf-menu-panel a[aria-current] span {
+  color: var(--pf-accent);
+}
+.pf-nav a[aria-current] {
+  box-shadow: inset 0 -2px 0 var(--pf-accent);
 }
 .pf-bar-end {
   display: flex;
@@ -472,7 +483,6 @@ a:hover > .pf-button-primary {
   font-weight: 600;
 }
 .pf-display {
-  max-width: 15.5em;
   font-family: var(--pf-font-display);
   font-stretch: var(--pf-stretch-display);
   font-size: var(--pf-size-display);
@@ -482,12 +492,182 @@ a:hover > .pf-button-primary {
   text-wrap: balance;
   --pf-lit: var(--pf-text);
 }
+.pf-display-page {
+  max-width: 16em;
+  font-size: var(--pf-size-display-page);
+  line-height: 1;
+}
 .pf-lede {
   max-width: 38rem;
   margin-top: var(--pf-space-6);
   color: var(--pf-muted);
   font-size: var(--pf-size-lg);
   --pf-lit: var(--pf-muted);
+}
+
+/* Home: the headline runs the full width, then the replay strip. */
+.pf-home-head,
+.pf-page-head {
+  position: relative;
+  padding-block: clamp(2rem, 4.5vw, 3.5rem) clamp(2rem, 4vw, 3rem);
+}
+.pf-home-head .pf-lede {
+  max-width: 62rem;
+}
+.pf-hero-page::before {
+  mask-image: linear-gradient(#000, transparent 80%);
+}
+.pf-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pf-space-3) var(--pf-space-4);
+  margin-top: var(--pf-space-6);
+}
+html:not(.pf-js) .pf-strip {
+  display: none;
+}
+.pf-strip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-height: var(--pf-control);
+  padding: 0 var(--pf-space-4) 0 var(--pf-space-3);
+  border: 1px solid var(--pf-accent);
+  background: var(--pf-surface);
+  cursor: pointer;
+  transition: background-color var(--pf-fast);
+}
+.pf-strip-chip:hover {
+  background: var(--pf-raised);
+}
+.pf-strip-chip:active svg {
+  transform: rotate(90deg);
+}
+.pf-strip-chip svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--pf-accent);
+  stroke-width: 1.5;
+  transition: transform var(--pf-base) var(--pf-ease);
+}
+.pf-strip-rate {
+  font-family: var(--pf-font-display);
+  font-stretch: var(--pf-stretch-figure);
+  font-size: var(--pf-size-xl);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.pf-strip-rate small {
+  color: var(--pf-muted);
+  font-family: var(--pf-font-mono);
+  font-size: var(--pf-size-xs);
+  font-weight: 500;
+}
+.pf-strip-name {
+  min-width: 5.5em;
+  color: var(--pf-muted);
+  text-align: left;
+}
+.pf-strip-read {
+  color: var(--pf-muted);
+  white-space: nowrap;
+}
+.pf-strip-note {
+  color: var(--pf-muted);
+  font-size: 0.8125rem;
+}
+.pf-strip-note a {
+  color: var(--pf-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.pf-strip-note a:hover {
+  color: var(--pf-accent);
+}
+
+/* Doorways: the home page's tiles, one per section. */
+.pf-doors {
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+}
+.pf-door-list {
+  display: grid;
+  gap: var(--pf-space-4);
+}
+.pf-door-list li {
+  display: grid;
+}
+.pf-door {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--pf-space-5);
+  min-height: 12.5rem;
+  padding: var(--pf-space-4) var(--pf-space-5) var(--pf-space-5);
+  border: 1px solid var(--pf-line-strong);
+  background: var(--pf-surface);
+  text-decoration: none;
+  transition:
+    border-color var(--pf-fast),
+    background-color var(--pf-fast);
+}
+.pf-door:hover {
+  border-color: var(--pf-accent);
+  background: var(--pf-raised);
+}
+.pf-door-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-4);
+  color: var(--pf-muted);
+}
+.pf-door-top strong {
+  margin-right: var(--pf-space-1);
+  color: var(--pf-accent);
+  font-weight: 600;
+}
+.pf-door-arrow {
+  color: var(--pf-text);
+  font-size: var(--pf-size-lg);
+  transition: transform var(--pf-base) var(--pf-ease);
+}
+.pf-door:hover .pf-door-arrow {
+  color: var(--pf-accent);
+  transform: translateX(4px);
+}
+.pf-door-figure {
+  display: grid;
+  align-content: end;
+  gap: var(--pf-space-2);
+}
+.pf-door .pf-figure {
+  font-size: var(--pf-size-door);
+}
+.pf-door .pf-figure small {
+  font-size: var(--pf-size-sm);
+}
+.pf-door-names {
+  font-family: var(--pf-font-display);
+  font-stretch: var(--pf-stretch-figure);
+  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.pf-door-note {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  color: var(--pf-faint);
+}
+.pf-door .hidden {
+  display: none;
+}
+.pf-door-text {
+  color: var(--pf-muted);
 }
 
 /* decode: the text is in the HTML and painted on the first frame. The head
@@ -1346,6 +1526,9 @@ a.pf-plate-project:hover .pf-plate-name {
 }
 
 /* Archive: a muted ledger */
+.pf-archive {
+  border-top: 1px solid var(--pf-line-strong);
+}
 .pf-archived {
   display: grid;
   grid-template-columns: 5rem minmax(0, 1fr);
@@ -1531,6 +1714,9 @@ a.pf-plate-project:hover .pf-plate-name {
   }
 }
 @media (min-width: 48rem) {
+  .pf-door-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .pf-card-top {
     padding-inline: var(--pf-space-6);
   }

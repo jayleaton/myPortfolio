@@ -1,31 +1,82 @@
 package ui
 
-// The portfolio page shell ("Measured"): document head (SEO, share cards,
-// font preload), the top bar with the live X chip and both navs, the footer
-// and the shared section heading. Each section lives in its own
-// portfolio_<section>.templ; the stack figure, bars and odometer in
-// portfolio_visuals.templ.
-// Styling hooks: every element has a stable pf-* class or data-section /
-// data-component attribute; styles live in apps/web/ui/styles/portfolio.css.
+// The portfolio's shell and pages ("Measured"). portfolioShell is the
+// document every page shares: head (SEO, share card, font preload), the top
+// bar with the live X chip and both navs, and the footer. The pages:
+//   - HomePage "/": the headline, a compact decode replay and three
+//     doorway tiles, one per section, each with one number or line.
+//   - LocalAIPage: the stack figure, the engine, recipe and router cards
+//     with their evidence, and the receipts ledger.
+//   - SaaSPage: the product cards and the network of sites.
+//   - SocialsPage: the live X count, the other profiles and latest videos.
+//   - ArchivePage: the older projects.
+// Sections live in portfolio_<area>.templ; the stack figure, bars and
+// odometer in portfolio_visuals.templ. Every word comes from
+// apps/web/internal/content.
 
 import (
 	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
 	"github.com/jayleaton/myPortfolio/apps/web/ui/routes"
 	"github.com/jayleaton/myPortfolio/apps/web/ui/static"
 	"github.com/jayleaton/myPortfolio/apps/web/ui/view"
 	"github.com/jayleaton/myPortfolio/packages/uikit"
 )
 
-// PortfolioPage is "/": the decode hero and stack figure, featured work,
-// the receipts ledger, the network, latest videos, contact with the live X
-// count, the archive and the footer. Every word comes from
-// apps/web/internal/content.
-templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
-	{{ site := page.Portfolio.Site }}
+// HomePage is "/": a one-screen overview that opens onto the other pages.
+templ HomePage(page apiclient.PortfolioPage, meta ShareMeta) {
+	@portfolioShell(page, meta) {
+		@homeHero(page)
+		@doorways(page)
+	}
+}
+
+// LocalAIPage is the local AI work: engines, recipes and routing.
+templ LocalAIPage(page apiclient.PortfolioPage, meta ShareMeta) {
+	{{ sections := page.Portfolio.Site.Sections }}
+	{{ projects := inArea(page.Portfolio.Featured, areaLocalAI) }}
+	@portfolioShell(page, meta) {
+		@localHero(page, projects)
+		@workSection(sections.Work, projects)
+		@receiptsSection(sections.Receipts, projects)
+	}
+}
+
+// SaaSPage is the products and the network of sites.
+templ SaaSPage(page apiclient.PortfolioPage, meta ShareMeta) {
+	{{ sections := page.Portfolio.Site.Sections }}
+	@portfolioShell(page, meta) {
+		@pageHead(page.Portfolio.Site.Pages.SaaS)
+		@workSection(sections.Products, inArea(page.Portfolio.Featured, areaSaaS))
+		@networkSection(page)
+	}
+}
+
+// SocialsPage is the live X count, the other profiles and the latest videos.
+templ SocialsPage(page apiclient.PortfolioPage, meta ShareMeta) {
+	@portfolioShell(page, meta) {
+		@pageHead(page.Portfolio.Site.Pages.Socials)
+		@uplinksSection(page)
+		@videosSection(page)
+	}
+}
+
+// ArchivePage is the older projects.
+templ ArchivePage(page apiclient.PortfolioPage, meta ShareMeta) {
+	@portfolioShell(page, meta) {
+		@pageHead(page.Portfolio.Site.Pages.Archive)
+		@archiveSection(page)
+	}
+}
+
+// portfolioShell is the document around a page's sections. The follower
+// signals and their live stream are on every page: the top bar shows the
+// count everywhere.
+templ portfolioShell(page apiclient.PortfolioPage, meta ShareMeta) {
 	@uikit.Page(uikit.Document{
 		Lang:        "en",
-		Title:       site.Title,
-		Description: site.Description,
+		Title:       meta.Title,
+		Description: meta.Description,
 		Theme:       view.StateFrom(ctx).Theme,
 		CSS:         static.URL(static.CSSFile),
 		Script:      static.URL(static.DatastarFile),
@@ -39,15 +90,9 @@ templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
 			data-signals={ templ.JSONString(followerSignals(page.Followers)) }
 			data-init={ "@get('" + routes.LiveFollowers + "')" }
 		>
-			@portfolioHeader(page)
+			@portfolioHeader(page, meta)
 			<main id="main" tabindex="-1">
-				@hero(page)
-				@workSection(page)
-				@receiptsSection(page)
-				@networkSection(page)
-				@videosSection(page)
-				@uplinksSection(page)
-				@archiveSection(page)
+				{ children... }
 			</main>
 			@portfolioFooter(page)
 		</div>
@@ -59,7 +104,6 @@ templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
 // when the script can release them, pf-decode ghosts the hero text for the
 // decode (never under prefers-reduced-motion).
 templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
-	{{ site := page.Portfolio.Site }}
 	<link rel="preload" href={ static.URL(static.DisplayFontFile) } as="font" type="font/woff2" crossorigin/>
 	<script nonce={ templ.GetNonce(ctx) }>
 		document.documentElement.classList.add('pf-js');
@@ -69,37 +113,39 @@ templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
 	<meta name="theme-color" content="#0b0c0e" media="(prefers-color-scheme: dark)"/>
 	<meta name="theme-color" content="#f4f2ec" media="(prefers-color-scheme: light)"/>
 	<meta name="author" content={ page.Portfolio.Name }/>
-	<meta property="og:type" content="profile"/>
+	<meta property="og:type" content={ ogType(meta) }/>
 	<meta property="og:site_name" content={ page.Portfolio.Name }/>
-	<meta property="og:title" content={ site.ShareTitle }/>
-	<meta property="og:description" content={ site.ShareText }/>
+	<meta property="og:title" content={ meta.ShareTitle }/>
+	<meta property="og:description" content={ meta.ShareText }/>
 	<meta property="og:url" content={ meta.Canonical }/>
 	<meta property="og:image" content={ meta.Image }/>
 	<meta property="og:image:width" content={ itoa(ogImageWidth) }/>
 	<meta property="og:image:height" content={ itoa(ogImageHeight) }/>
-	<meta property="og:image:alt" content={ site.ShareTitle }/>
+	<meta property="og:image:alt" content={ meta.ShareTitle }/>
 	<meta name="twitter:card" content="summary_large_image"/>
 	<meta name="twitter:site" content={ "@" + meta.XHandle }/>
 	<meta name="twitter:creator" content={ "@" + meta.XHandle }/>
-	<meta name="twitter:title" content={ site.ShareTitle }/>
-	<meta name="twitter:description" content={ site.ShareText }/>
+	<meta name="twitter:title" content={ meta.ShareTitle }/>
+	<meta name="twitter:description" content={ meta.ShareText }/>
 	<meta name="twitter:image" content={ meta.Image }/>
-	<meta name="twitter:image:alt" content={ site.ShareTitle }/>
-	@templ.JSONScript("person-ld", personLD(page, meta)).WithType("application/ld+json")
+	<meta name="twitter:image:alt" content={ meta.ShareTitle }/>
+	if meta.Path == config.AppRoutes.Home {
+		@templ.JSONScript("person-ld", personLD(page, meta)).WithType("application/ld+json")
+	}
 	<script type="module" src={ static.URL(static.PortfolioScript) } nonce={ templ.GetNonce(ctx) }></script>
 }
 
-// portfolioHeader is the sticky top bar. From 56rem up the sections are an
+// portfolioHeader is the sticky top bar. From 56rem up the pages are an
 // inline nav; below, the same links sit in a <details> menu, which opens
 // without JavaScript (the script only closes it on a choice or Escape).
-templ portfolioHeader(page apiclient.PortfolioPage) {
+templ portfolioHeader(page apiclient.PortfolioPage, meta ShareMeta) {
 	<header class="pf-bar" data-component="header">
 		<div class="pf-wrap pf-bar-row">
-			<a href="#main" class="pf-mark" aria-label={ page.Portfolio.Name + ", top of page" }>
+			<a href={ templ.SafeURL(config.AppRoutes.Home) } class="pf-mark" aria-label={ page.Portfolio.Name + ", home" }>
 				<span class="pf-mark-dot" aria-hidden="true"></span>{ page.Portfolio.Name }
 			</a>
-			<nav class="pf-nav pf-mono" aria-label="Sections">
-				@navLinks(page)
+			<nav class="pf-nav pf-mono" aria-label="Pages">
+				@navLinks(page, meta)
 			</nav>
 			<div class="pf-bar-end">
 				@xChip(page)
@@ -110,8 +156,8 @@ templ portfolioHeader(page apiclient.PortfolioPage) {
 					<summary aria-label="Menu">
 						<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5h14M1 8h14M1 12.5h14"></path></svg>
 					</summary>
-					<nav class="pf-menu-panel pf-mono" aria-label="Sections menu">
-						@navLinks(page)
+					<nav class="pf-menu-panel pf-mono" aria-label="Pages menu">
+						@navLinks(page, meta)
 					</nav>
 				</details>
 			</div>
@@ -120,9 +166,15 @@ templ portfolioHeader(page apiclient.PortfolioPage) {
 	</header>
 }
 
-templ navLinks(page apiclient.PortfolioPage) {
-	for _, section := range navSections(page) {
-		<a href={ templ.SafeURL("#" + section.ID) }><span aria-hidden="true">{ section.Number }</span>{ section.Title }</a>
+// navLinks are the pages beside home; the current one is marked.
+templ navLinks(page apiclient.PortfolioPage, meta ShareMeta) {
+	for _, item := range navPages(page) {
+		<a
+			href={ templ.SafeURL(item.Path) }
+			if item.Path == meta.Path {
+				aria-current="page"
+			}
+		><span aria-hidden="true">{ item.Page.Number }</span>{ item.Page.Name }</a>
 	}
 }
 
@@ -142,6 +194,18 @@ templ xChip(page apiclient.PortfolioPage) {
 	}
 }
 
+// pageHead is the top of a page beside home: its place in the nav, its
+// headline and its intro.
+templ pageHead(item apiclient.Page) {
+	<section class="pf-hero pf-hero-page" data-section="page-head" aria-labelledby="page-title">
+		<div class="pf-wrap pf-page-head">
+			<p class="pf-kicker pf-mono"><strong>{ item.Number }</strong><span>{ item.Name }</span></p>
+			<h1 id="page-title" class="pf-display pf-display-page">{ item.Heading }</h1>
+			<p class="pf-lede">{ item.Intro }</p>
+		</div>
+	</section>
+}
+
 // sectionHead is every section's heading: number and title on the left,
 // the intro on the right.
 templ sectionHead(section apiclient.Section) {
@@ -151,16 +215,16 @@ templ sectionHead(section apiclient.Section) {
 	</header>
 }
 
+// portfolioFooter is the same small footer on every page.
 templ portfolioFooter(page apiclient.PortfolioPage) {
 	<footer class="pf-footer" data-component="footer">
 		<div class="pf-ruler" aria-hidden="true"></div>
 		<div class="pf-wrap pf-footer-row">
 			<p class="pf-footer-note"><span class="pf-mark"><span class="pf-mark-dot" aria-hidden="true"></span>{ page.Portfolio.Name }</span>{ page.Portfolio.Site.Footer }</p>
 			<p class="pf-footer-links pf-mono">
-				for _, link := range page.Portfolio.Socials {
-					<a href={ templ.SafeURL(link.URL) } target="_blank" rel="me noopener">{ link.Name }</a>
+				for _, item := range navPages(page) {
+					<a href={ templ.SafeURL(item.Path) }>{ item.Page.Name }</a>
 				}
-				<a href="#main">Top ↑</a>
 			</p>
 		</div>
 	</footer>
