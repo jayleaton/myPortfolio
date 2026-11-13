@@ -64,6 +64,12 @@ Templ comes first, then CSS. Both outputs are committed; `make check-generated` 
 `make lint test build` while you work and `make ci` before a pull request. See [AGENTS.md](AGENTS.md) "Verifying" and
 [docs/CI.md](docs/CI.md).
 
+## Production domain
+
+Production's `PUBLIC_URL` is `https://www.jayleaton.com` (`deploy/platform.yaml` `per_environment.production`), so the
+canonical, Open Graph and JSON-LD URLs name www. The server answers the bare `jayleaton.com` with a 308 to the same path on
+www (`wwwRedirect` in `apps/web/internal/server/middleware.go`); the Railway domain and health checks are served as is.
+
 ## Template features kept but switched off
 
 The template's sign-in, dashboard and account pages are still in the code but not mounted (`config.Features.AccountPages`).

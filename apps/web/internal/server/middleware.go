@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -200,4 +201,32 @@ func logPath(path string) string {
 		}
 	}
 	return path
+}
+
+// wwwRedirect sends requests for the bare domain of a www PUBLIC_URL
+// (jayleaton.com when PUBLIC_URL is https://www.jayleaton.com) to the same
+// path and query on PUBLIC_URL with a 308, so the apex never serves a second
+// copy of the site. Every other host (the Railway domain, Railway's health
+// checks, localhost) is served as is. Without a www PUBLIC_URL it does nothing.
+func wwwRedirect(public *url.URL, next http.Handler) http.Handler {
+	if public == nil {
+		return next
+	}
+	bare, ok := strings.CutPrefix(strings.ToLower(public.Hostname()), "www.")
+	if !ok || bare == "" {
+		return next
+	}
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		host := request.Host
+		if name, _, err := net.SplitHostPort(host); err == nil {
+			host = name
+		}
+		if !strings.EqualFold(host, bare) {
+			next.ServeHTTP(writer, request)
+			return
+		}
+		target := *public
+		target.Path, target.RawPath, target.RawQuery = request.URL.Path, request.URL.RawPath, request.URL.RawQuery
+		http.Redirect(writer, request, target.String(), http.StatusPermanentRedirect)
+	})
 }

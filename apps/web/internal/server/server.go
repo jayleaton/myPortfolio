@@ -78,7 +78,7 @@ func New(deps Deps) http.Handler {
 	if deps.UI != nil {
 		mux.Handle("/", deps.UI)
 	}
-	return securityHeaders(logRequests(deps.Log, recoverPanics(deps.Log, deps.Auth.Middleware(mux))))
+	return securityHeaders(logRequests(deps.Log, wwwRedirect(deps.Config.PublicURL, recoverPanics(deps.Log, deps.Auth.Middleware(mux)))))
 }
 
 // securityHeaders covers what the UI does not answer (the API, /healthz,
