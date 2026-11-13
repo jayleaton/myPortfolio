@@ -4,8 +4,7 @@
 // - decode: lights the hero's .pf-tok spans one by one at the selected
 //   run's published rate, fills the readout, mirrors the run wherever the
 //   page shows it and sets --pf-rate for the stack figure's packets. The
-//   runs are [data-run] elements: tabs on the local AI page, hidden
-//   carriers on the home page, where [data-run-next] steps through them.
+//   runs are the [data-run] tabs on the local AI page.
 // - roll: [data-odo] follows data-target (Datastar keeps it on the live
 //   $followers signal) with one rolling column per digit.
 // - grow: [data-reveal] gets .pf-in when it scrolls into view (bars).
@@ -55,7 +54,7 @@ function decodeHero() {
 
   const select = (tab) => {
     rate = Number(tab.dataset.rate) || rate
-    for (const other of tabs) if (other.tagName === 'BUTTON') other.setAttribute('aria-pressed', String(other === tab))
+    for (const other of tabs) other.setAttribute('aria-pressed', String(other === tab))
     setText('[data-run-rate]', tab.dataset.rate)
     setText('[data-run-name]', tab.dataset.name)
     setText('[data-run-label]', tab.dataset.label)
@@ -65,14 +64,6 @@ function decodeHero() {
   }
 
   for (const tab of tabs) tab.addEventListener('click', () => select(tab))
-  // The home page's chip steps through the runs, replaying each.
-  let current = 0
-  each('[data-run-next]', (button) =>
-    button.addEventListener('click', () => {
-      current = (current + 1) % tabs.length
-      select(tabs[current])
-    }),
-  )
   each('[data-replay]', (button) => button.addEventListener('click', play))
   each('[data-show-tokens]', (button) =>
     button.addEventListener('click', () => {

@@ -63,7 +63,9 @@
   --pf-size-figure: 2rem;
   --pf-size-count: clamp(3.5rem, 2rem + 7vw, 6rem);
   --pf-size-door: clamp(3rem, 2rem + 3.4vw, 4.75rem); /* a doorway tile's figure */
-  --pf-size-display: clamp(2.5rem, 1.2rem + 5.4vw, 5.25rem); /* the home headline */
+  --pf-size-hook: clamp(4.75rem, 0.6rem + 17vw, 12.5rem); /* the home hook */
+  --pf-hook-step: 0.85s; /* one word's pass through the hook */
+  --pf-hook-wait: 0.25s;
   --pf-size-display-page: clamp(2rem, 1.3rem + 3vw, 3.5rem); /* the other pages' headlines */
   --pf-leading: 1.55;
   --pf-leading-display: 0.96;
@@ -485,7 +487,7 @@ a:hover > .pf-button-primary {
 .pf-display {
   font-family: var(--pf-font-display);
   font-stretch: var(--pf-stretch-display);
-  font-size: var(--pf-size-display);
+  font-size: var(--pf-size-display-page);
   font-weight: 800;
   line-height: var(--pf-leading-display);
   letter-spacing: -0.012em;
@@ -505,88 +507,84 @@ a:hover > .pf-button-primary {
   --pf-lit: var(--pf-muted);
 }
 
-/* Home: the headline runs the full width, then the replay strip. */
+/* Home: the hook, then one line. */
 .pf-home-head,
 .pf-page-head {
   position: relative;
   padding-block: clamp(2rem, 4.5vw, 3.5rem) clamp(2rem, 4vw, 3rem);
 }
-.pf-home-head .pf-lede {
-  max-width: 62rem;
-}
 .pf-hero-page::before {
   mask-image: linear-gradient(#000, transparent 80%);
 }
-.pf-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--pf-space-3) var(--pf-space-4);
-  margin-top: var(--pf-space-6);
+/* The hook: three words, as large as the screen allows. The words in
+   .pf-hook-pass are drawn from data-word and pass through the slot one
+   after another, then the final word (the only one in the text) settles. */
+.pf-hook {
+  font-size: var(--pf-size-hook);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-wrap: initial;
 }
-html:not(.pf-js) .pf-strip {
+.pf-hook-slot {
+  display: inline-grid;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.pf-hook-slot > * {
+  grid-area: 1 / 1;
+}
+.pf-hook-pass {
+  opacity: 0;
+  color: var(--pf-muted);
+  animation: pf-hook-pass var(--pf-hook-step) var(--pf-ease) both;
+}
+.pf-hook-pass::before {
+  content: attr(data-word);
+}
+.pf-hook-pass:nth-child(1) {
+  animation-delay: calc(var(--pf-hook-step) * 0 + var(--pf-hook-wait));
+}
+.pf-hook-pass:nth-child(2) {
+  animation-delay: calc(var(--pf-hook-step) * 1 + var(--pf-hook-wait));
+}
+.pf-hook-pass:nth-child(3) {
+  animation-delay: calc(var(--pf-hook-step) * 2 + var(--pf-hook-wait));
+}
+.pf-hook-pass:nth-child(n + 4) {
   display: none;
 }
-.pf-strip-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pf-space-3);
-  min-height: var(--pf-control);
-  padding: 0 var(--pf-space-4) 0 var(--pf-space-3);
-  border: 1px solid var(--pf-accent);
-  background: var(--pf-surface);
-  cursor: pointer;
-  transition: background-color var(--pf-fast);
-}
-.pf-strip-chip:hover {
-  background: var(--pf-raised);
-}
-.pf-strip-chip:active svg {
-  transform: rotate(90deg);
-}
-.pf-strip-chip svg {
-  width: 1rem;
-  height: 1rem;
-  fill: none;
-  stroke: var(--pf-accent);
-  stroke-width: 1.5;
-  transition: transform var(--pf-base) var(--pf-ease);
-}
-.pf-strip-rate {
-  font-family: var(--pf-font-display);
-  font-stretch: var(--pf-stretch-figure);
-  font-size: var(--pf-size-xl);
-  font-weight: 800;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.pf-strip-rate small {
-  color: var(--pf-muted);
-  font-family: var(--pf-font-mono);
-  font-size: var(--pf-size-xs);
-  font-weight: 500;
-}
-.pf-strip-name {
-  min-width: 5.5em;
-  color: var(--pf-muted);
-  text-align: left;
-}
-.pf-strip-read {
-  color: var(--pf-muted);
-  white-space: nowrap;
-}
-.pf-strip-note {
-  color: var(--pf-muted);
-  font-size: 0.8125rem;
-}
-.pf-strip-note a {
-  color: var(--pf-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  white-space: nowrap;
-}
-.pf-strip-note a:hover {
+.pf-hook-final {
   color: var(--pf-accent);
+  animation: pf-hook-settle var(--pf-slow) var(--pf-ease) calc(var(--pf-hook-step) * 3 + var(--pf-hook-wait)) both;
+}
+.pf-hook-slot:not(:has(.pf-hook-pass)) .pf-hook-final {
+  animation: none;
+}
+.pf-hook-line {
+  margin-top: var(--pf-space-5);
+  color: var(--pf-text);
+  font-size: var(--pf-size-xl);
+}
+@keyframes pf-hook-pass {
+  0% {
+    opacity: 0;
+    transform: translateY(0.28em);
+  }
+  22%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-0.28em);
+  }
+}
+@keyframes pf-hook-settle {
+  from {
+    opacity: 0;
+    transform: translateY(0.28em);
+  }
 }
 
 /* Doorways: the home page's tiles, one per section. */
@@ -640,7 +638,7 @@ html:not(.pf-js) .pf-strip {
 }
 .pf-door-figure {
   display: grid;
-  align-content: end;
+  align-content: start;
   gap: var(--pf-space-2);
 }
 .pf-door .pf-figure {
@@ -648,14 +646,6 @@ html:not(.pf-js) .pf-strip {
 }
 .pf-door .pf-figure small {
   font-size: var(--pf-size-sm);
-}
-.pf-door-names {
-  font-family: var(--pf-font-display);
-  font-stretch: var(--pf-stretch-figure);
-  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.05;
-  text-wrap: balance;
 }
 .pf-door-note {
   display: flex;
@@ -667,7 +657,10 @@ html:not(.pf-js) .pf-strip {
   display: none;
 }
 .pf-door-text {
-  color: var(--pf-muted);
+  padding-top: var(--pf-space-4);
+  border-top: 1px solid var(--pf-line);
+  color: var(--pf-text);
+  font-weight: 500;
 }
 
 /* decode: the text is in the HTML and painted on the first frame. The head

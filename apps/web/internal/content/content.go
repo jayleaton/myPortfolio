@@ -33,8 +33,8 @@ type Site struct {
 	Description string
 	// ShareTitle and ShareText are the home page's X / Open Graph card.
 	ShareTitle, ShareText string
-	// Kicker sits above the home page's headline.
-	Kicker string
+	// Hook is the home page's headline and the one line under it.
+	Hook Hook
 	// Hardware is the bottom plate of the stack figure.
 	Hardware Hardware
 	Pages    Pages
@@ -54,9 +54,19 @@ type Pages struct {
 	LocalAI, SaaS, Socials, Archive Page
 }
 
+// Hook is the home page's headline: Lead and Final read as one short
+// sentence ("I build" + "things."). Words pass through the last slot before
+// Final settles there, one per area of work. Line sits under the headline.
+type Hook struct {
+	Lead  string
+	Words []string
+	Final string
+	Line  string
+}
+
 // Page is one page's copy: its number and name in the nav, the headline
 // and intro at its top (the intro is also its search description) and the
-// line on its home-page tile.
+// label under the figure on its home-page tile.
 type Page struct {
 	Number, Name, Heading, Intro, Teaser string
 }

@@ -4,8 +4,8 @@ package content
 // page renders from these values, in this order.
 var portfolio = Portfolio{
 	Name:     "JJ Eaton",
-	Headline: "I build inference engines, local AI routing, and GPU recipes that turn hardware into something useful.",
-	Bio:      "I build inference engines, local AI routing, and GPU recipes that turn hardware into something useful. I contribute to TensorFold, build LocalRouter, and ship products like Lockpick and AutoVisuals. I care about measured performance and software people can use.",
+	Headline: "I build things.",
+	Bio:      "I build SaaS products and local AI engines, and I build in public. I ship Lockpick and AutoVisuals, contribute to TensorFold, build LocalRouter, and share the work on X and the Build Things channel.",
 	XHandle:  "jayleaton",
 	YouTube: Channel{
 		ID:     "UC-AGtYCONF0Yu0uK_fL1j1Q",
@@ -237,11 +237,16 @@ var portfolio = Portfolio{
 		},
 	},
 	Site: Site{
-		Title:       "JJ Eaton · Inference engines, local AI routing, GPU recipes",
-		Description: "JJ Eaton builds inference engines, local AI routing and GPU recipes: TensorFold, LocalRouter, DGX Spark recipes for DeepSeek, GLM and Qwen, Lockpick and AutoVisuals.",
-		ShareTitle:  "JJ Eaton: inference engines, local AI routing, GPU recipes",
-		ShareText:   "Inference engines, local AI routing and DGX Spark recipes, measured on real hardware.",
-		Kicker:      "Inference engines / Local AI routing / GPU recipes",
+		Title:       "JJ Eaton · I build things",
+		Description: "JJ Eaton builds SaaS products, local AI engines and recipes, and builds in public: Lockpick, AutoVisuals, TensorFold, LocalRouter and the Build Things channel.",
+		ShareTitle:  "JJ Eaton: I build things",
+		ShareText:   "SaaS products, local AI engines, and building in public.",
+		Hook: Hook{
+			Lead:  "I build",
+			Words: []string{"SaaS.", "engines.", "in public."},
+			Final: "things.",
+			Line:  "Engineer shipping with AI agents.",
+		},
 		Hardware: Hardware{
 			Name:   "NVIDIA DGX Spark",
 			Memory: "128 GB",
@@ -250,10 +255,10 @@ var portfolio = Portfolio{
 			Units:  []string{"Spark A", "Spark B"},
 		},
 		Pages: Pages{
-			LocalAI: Page{Number: "01", Name: "Local AI", Heading: "Engines, recipes and a router. All measured.", Intro: "I contribute to the TensorFold inference engine, publish DGX Spark recipes for DeepSeek, GLM and Qwen, and build LocalRouter. Every number links to its receipt.", Teaser: "TensorFold, DGX Spark recipes and LocalRouter."},
-			SaaS:    Page{Number: "02", Name: "SaaS", Heading: "Products built to be used.", Intro: "Lockpick and AutoVisuals, plus the smaller products and companies I run.", Teaser: "Plus the smaller products and companies I run."},
-			Socials: Page{Number: "03", Name: "Socials", Heading: "Follow along, or get in touch.", Intro: "Where I post what I am building, the Build Things channel, and the ways to work with me or support the work.", Teaser: "X, YouTube, GitHub and ways to work with me."},
-			Archive: Page{Number: "04", Name: "Archive", Heading: "Earlier work, kept for the record.", Intro: "Production work at Global Poker and my bootcamp projects.", Teaser: "Earlier work, kept for the record."},
+			SaaS:    Page{Number: "01", Name: "SaaS", Heading: "Products built to be used.", Intro: "Lockpick and AutoVisuals, plus the smaller products and companies I run.", Teaser: "products and sites live"},
+			LocalAI: Page{Number: "02", Name: "Local AI", Heading: "Engines, recipes and a router. All measured.", Intro: "I contribute to the TensorFold inference engine, publish DGX Spark recipes for DeepSeek, GLM and Qwen, and build LocalRouter. Every number links to its receipt.", Teaser: "published decode rate"},
+			Socials: Page{Number: "03", Name: "Build in public", Heading: "Follow along, or get in touch.", Intro: "Where I post what I am building, the Build Things channel, and the ways to work with me or support the work.", Teaser: "followers on X"},
+			Archive: Page{Number: "04", Name: "Archive", Heading: "Earlier work, kept for the record.", Intro: "Production work at Global Poker and my bootcamp projects."},
 		},
 		Sections: Sections{
 			Work:     Section{ID: "work", Number: "01", Title: "Projects", Intro: "What I am building and contributing to right now."},
@@ -263,7 +268,7 @@ var portfolio = Portfolio{
 			Uplinks:  Section{ID: "uplinks", Number: "01", Title: "Find me", Intro: "Follow along, hire me, or buy me a coffee."},
 			Videos:   Section{ID: "videos", Number: "02", Title: "Build Things", Intro: "I build in public on YouTube. The latest uploads, fetched live."},
 		},
-		Footer: "Served by one static Go binary: Go, templ and Datastar.",
+		Footer: "Go, templ and Datastar on Railway.",
 	},
 	// FallbackVideos show until the first successful channel fetch.
 	FallbackVideos: []Video{

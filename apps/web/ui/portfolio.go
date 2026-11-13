@@ -154,8 +154,8 @@ type navItem struct {
 func navPages(page apiclient.PortfolioPage) []navItem {
 	pages := page.Portfolio.Site.Pages
 	return []navItem{
-		{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI},
 		{Path: config.AppRoutes.SaaS, Page: pages.SaaS},
+		{Path: config.AppRoutes.LocalAI, Page: pages.LocalAI},
 		{Path: config.AppRoutes.Socials, Page: pages.Socials},
 		{Path: config.AppRoutes.Archive, Page: pages.Archive},
 	}
@@ -247,12 +247,6 @@ func tokenSpans(text string) templ.Component {
 		_, err := io.WriteString(writer, out.String())
 		return err
 	})
-}
-
-// lede is the bio without the headline it starts with (the headline is the
-// hero's h1, so the paragraph under it continues from there).
-func lede(headline, bio string) string {
-	return strings.TrimSpace(strings.TrimPrefix(bio, headline))
 }
 
 // rateUnit marks a metric as a decode rate the hero can replay.
