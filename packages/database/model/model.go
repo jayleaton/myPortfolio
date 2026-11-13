@@ -35,3 +35,10 @@ type UserDataSummary struct {
 	User     User  `json:"user"`
 	Sessions int64 `json:"sessions"`
 }
+
+// CacheEntry is a persisted last good value: Value is JSON.
+type CacheEntry struct {
+	Key       string
+	Value     []byte
+	UpdatedAt time.Time
+}

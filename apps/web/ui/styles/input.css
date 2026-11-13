@@ -4,5 +4,6 @@
 @import 'tailwindcss' source(none);
 @import '../../../../packages/uikit/theme.css';
 @import '../../../../packages/uikit/base.css';
+@import './portfolio.css';
 @source "../**/*.templ";
 @source "../**/*.go";

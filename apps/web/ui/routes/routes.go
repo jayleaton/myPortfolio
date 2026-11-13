@@ -14,5 +14,8 @@ const (
 	Logout        = "/logout"
 	Locale        = "/locale"
 	DashboardLive = "/dashboard/live"
+	// LiveFollowers streams the portfolio's X follower count (SSE).
+	LiveFollowers = "/live/followers"
+	Robots        = "/robots.txt"
 	Static        = "/static/"
 )

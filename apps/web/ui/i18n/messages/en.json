@@ -170,12 +170,6 @@
       "confirmDescription": "Confirm that this is your email address to finish verifying it.",
       "confirmButton": "Verify email"
     },
-    "home": {
-      "title": "Your app is running",
-      "body": "The starter welcome page is turned off. Sign in, or replace this screen with your own homepage.",
-      "signUp": "Sign up",
-      "signIn": "Sign in"
-    },
     "account": {
       "title": "Account",
       "subtitle": "Manage your profile, sign-in details and devices.",

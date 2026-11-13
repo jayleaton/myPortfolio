@@ -167,24 +167,3 @@ templ LiveBody(now time.Time, session apiclient.CallerSession) {
 templ LiveNotice() {
 	@uikit.Alert(liveNoticeID, uikit.Info, i18n.Translate(ctx, "pages.dashboard.live.updatedElsewhere"))
 }
-
-// HomePage is "/" when the template welcome is turned off.
-templ HomePage() {
-	@view.Layout("") {
-		<div class={ uikit.ContainerClass, "flex min-h-[calc(100dvh-4rem)] items-center py-16" }>
-			<div class="max-w-xl">
-				@uikit.Badge(uikit.Success, view.AppName(view.StateFrom(ctx)), true)
-				<h1 class="mt-5 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{ i18n.Translate(ctx, "pages.home.title") }</h1>
-				<p class="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">{ i18n.Translate(ctx, "pages.home.body") }</p>
-				<div class="mt-8 flex flex-col gap-3 sm:flex-row">
-					@uikit.LinkButton(config.AppRoutes.Signup, uikit.ButtonProps{}) {
-						{ i18n.Translate(ctx, "pages.home.signUp") }
-					}
-					@uikit.LinkButton(config.AppRoutes.Login, uikit.ButtonProps{Variant: uikit.Secondary}) {
-						{ i18n.Translate(ctx, "pages.home.signIn") }
-					}
-				</div>
-			</div>
-		</div>
-	}
-}

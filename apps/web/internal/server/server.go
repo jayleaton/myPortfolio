@@ -39,9 +39,11 @@ type Deps struct {
 	Secrets SecretsHealth // nil: /healthz checks the database only
 	Auth    Auth
 	Users   *api.Users
-	Social  *api.Social  // Google and Apple sign-in; nil when unused
-	Images  *api.Images  // nil: object storage is off and its routes are not mounted
-	UI      http.Handler // apps/web/ui routes, mounted at "/"; nil until the UI lands
+	Social  *api.Social // Google and Apple sign-in; nil when unused
+	Images  *api.Images // nil: object storage is off and its routes are not mounted
+	// Portfolio is the public portfolio's endpoints; nil when unused.
+	Portfolio *api.Portfolio
+	UI        http.Handler // apps/web/ui routes, mounted at "/"; nil until the UI lands
 }
 
 // New returns the root handler. The JSON API (auth and core) and /healthz
@@ -55,6 +57,9 @@ func New(deps Deps) http.Handler {
 	deps.Users.Routes(apiMux)
 	if deps.Social != nil {
 		deps.Social.Routes(apiMux)
+	}
+	if deps.Portfolio != nil {
+		deps.Portfolio.Routes(apiMux)
 	}
 	if deps.Images != nil {
 		deps.Images.Routes(apiMux)

@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/url"
 	"time"
 
 	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
@@ -94,6 +95,9 @@ type Deps struct {
 	// AppName is the product name in the header and <title>; defaults to
 	// config.DefaultAppName.
 	AppName string
+	// PublicURL is the site's origin, for canonical and share-card URLs;
+	// nil renders them relative to the page.
+	PublicURL *url.URL
 	// SecureCookies marks UI cookies (locale) Secure; true behind HTTPS.
 	SecureCookies bool
 	Logger        *slog.Logger

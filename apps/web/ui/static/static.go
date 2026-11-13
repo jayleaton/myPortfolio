@@ -28,7 +28,23 @@ const FaviconFile = "favicon.ico"
 // CSSFile is written by the Tailwind standalone CLI (see apps/web/ui/README.md).
 const CSSFile = "app.css"
 
-//go:embed app.css datastar-1.0.4.js favicon.ico
+// PortfolioScript is the portfolio page's only script of its own: the
+// follower count-up, the hero readouts and the scroll reveals.
+const PortfolioScript = "portfolio.js"
+
+// OGImageFile is the 1200×630 share card (X, Open Graph).
+const OGImageFile = "og.png"
+
+// The self-hosted fonts (SIL Open Font License), preloaded by the page.
+const (
+	DisplayFontFile = "fonts/space-grotesk.woff2"
+	MonoFontFile    = "fonts/jetbrains-mono.woff2"
+)
+
+// Image is the URL of an image under img/ (content.Project.Image).
+func Image(name string) string { return URL(name) }
+
+//go:embed app.css datastar-1.0.4.js favicon.ico portfolio.js og.png fonts img
 var FS embed.FS
 
 var versions = func() map[string]string {

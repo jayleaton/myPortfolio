@@ -22,6 +22,7 @@ import (
 	"github.com/jayleaton/myPortfolio/apps/web/internal/access"
 	"github.com/jayleaton/myPortfolio/apps/web/internal/api"
 	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
+	"github.com/jayleaton/myPortfolio/apps/web/internal/content"
 	"github.com/jayleaton/myPortfolio/apps/web/internal/server"
 	"github.com/jayleaton/myPortfolio/apps/web/internal/services"
 	"github.com/jayleaton/myPortfolio/apps/web/ui"
@@ -127,21 +128,29 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	gate := access.NewGate(server.Callers)
 	usersAPI := api.NewUsers(users, gate)
 	socialAPI := api.NewSocial(services.NewSocialSignInService(server.NewSocialAuth(authn)), gate)
+	// The portfolio's live values refresh in the background; pages read the
+	// last good ones from memory and never wait on X or YouTube.
+	portfolio := services.NewPortfolioService(content.Source{}, server.NewFetcher(), database.NewCacheRepository(pool), nil)
+	go portfolio.Run(ctx, services.DefaultRefreshIntervals, func(task string, err error) {
+		log.Warn("portfolio: refresh failed, serving the last good value", "task", task, "err", err)
+	})
+	portfolioAPI := api.NewPortfolio(portfolio, gate)
 	images, err := newImages(ctx, cfg, gate, log)
 	if err != nil {
 		return err
 	}
 	handler := server.New(server.Deps{
-		Config:  cfg,
-		Log:     log,
-		DB:      pool,
-		Secrets: cfg.Secrets,
-		Auth:    authn,
-		Users:   usersAPI,
-		Social:  socialAPI,
-		Images:  images,
+		Config:    cfg,
+		Log:       log,
+		DB:        pool,
+		Secrets:   cfg.Secrets,
+		Auth:      authn,
+		Users:     usersAPI,
+		Social:    socialAPI,
+		Images:    images,
+		Portfolio: portfolioAPI,
 		UI: ui.New(ui.Deps{
-			API: api.NewClient(usersAPI, api.NewSessions(server.NewAuthenticator(authn), gate)).WithSocial(socialAPI), Gate: gate, Features: cfg.Features, AppName: cfg.AppName,
+			API: api.NewClient(usersAPI, api.NewSessions(server.NewAuthenticator(authn), gate)).WithSocial(socialAPI).WithPortfolio(portfolioAPI), Gate: gate, Features: cfg.Features, AppName: cfg.AppName, PublicURL: cfg.PublicURL,
 			SecureCookies: cfg.PublicURL.Scheme == "https", Logger: log,
 		}).Handler(),
 	})

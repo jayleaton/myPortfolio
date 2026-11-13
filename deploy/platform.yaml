@@ -9,7 +9,7 @@ version: 1
 # Railway project name: created on the first apply if it does not exist,
 # otherwise reused (matched by exact name in the workspace). auto: the
 # GitHub repo name (or this directory's name).
-project: auto
+project: jayleaton-portfolio
 # Railway workspace name or id. Empty: your only workspace (required when you
 # belong to more than one).
 workspace: ""
@@ -87,7 +87,9 @@ email:
 # stores it in a Railway storage bucket, then prunes. Restore: make
 # railway-restore. Costs cents a month at template sizes.
 backups:
-  enabled: true
+  # Off: the portfolio's database holds only a cache of public values
+  # (X followers, latest videos) that refills itself on boot.
+  enabled: false
   schedule: "0 3 * * *"   # cron, UTC
   keep_daily: 7           # the newest backup of each of the last 7 days
   keep_weekly: 4          # and of each of the last 4 weeks

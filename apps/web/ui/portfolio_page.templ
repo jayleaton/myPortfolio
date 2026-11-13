@@ -1,0 +1,124 @@
+package ui
+
+// The portfolio page shell: document head (SEO, share cards), header,
+// footer and the shared section heading. Each section lives in its own
+// portfolio_<section>.templ; decorative visuals in portfolio_visuals.templ.
+// Styling hooks: every element has a stable pf-* class or data-section /
+// data-component attribute; styles live in apps/web/ui/styles/portfolio.css.
+
+import (
+	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/routes"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/static"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/view"
+	"github.com/jayleaton/myPortfolio/packages/uikit"
+)
+
+// PortfolioPage is "/": the hero diagram, featured work, the network,
+// latest videos, uplinks with the live X count, the archive and the footer.
+// Every word comes from apps/web/internal/content.
+templ PortfolioPage(page apiclient.PortfolioPage, meta ShareMeta) {
+	{{ site := page.Portfolio.Site }}
+	@uikit.Page(uikit.Document{
+		Lang:        "en",
+		Title:       site.Title,
+		Description: site.Description,
+		Theme:       view.StateFrom(ctx).Theme,
+		CSS:         static.URL(static.CSSFile),
+		Script:      static.URL(static.DatastarFile),
+		Favicon:     static.URL(static.FaviconFile),
+		Head:        portfolioHead(page, meta),
+		BodyClass:   "pf",
+	}) {
+		<a href="#main" class="pf-skip">Skip to content</a>
+		<div
+			class="pf-root"
+			data-signals={ templ.JSONString(followerSignals(page.Followers)) }
+			data-init={ "@get('" + routes.LiveFollowers + "')" }
+		>
+			@portfolioHeader(page)
+			<main id="main" tabindex="-1">
+				@hero(page)
+				@workSection(page)
+				@networkSection(page)
+				@videosSection(page)
+				@uplinksSection(page)
+				@archiveSection(page)
+			</main>
+			@portfolioFooter(page)
+		</div>
+	}
+}
+
+// portfolioHead is the share-card and search metadata.
+templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
+	{{ site := page.Portfolio.Site }}
+	<link rel="canonical" href={ meta.Canonical }/>
+	<meta name="theme-color" content="#05070b" media="(prefers-color-scheme: dark)"/>
+	<meta name="theme-color" content="#eef3fb" media="(prefers-color-scheme: light)"/>
+	<meta name="author" content={ page.Portfolio.Name }/>
+	<meta property="og:type" content="profile"/>
+	<meta property="og:site_name" content={ page.Portfolio.Name }/>
+	<meta property="og:title" content={ site.ShareTitle }/>
+	<meta property="og:description" content={ site.ShareText }/>
+	<meta property="og:url" content={ meta.Canonical }/>
+	<meta property="og:image" content={ meta.Image }/>
+	<meta property="og:image:width" content={ itoa(ogImageWidth) }/>
+	<meta property="og:image:height" content={ itoa(ogImageHeight) }/>
+	<meta property="og:image:alt" content={ site.ShareTitle }/>
+	<meta name="twitter:card" content="summary_large_image"/>
+	<meta name="twitter:site" content={ "@" + meta.XHandle }/>
+	<meta name="twitter:creator" content={ "@" + meta.XHandle }/>
+	<meta name="twitter:title" content={ site.ShareTitle }/>
+	<meta name="twitter:description" content={ site.ShareText }/>
+	<meta name="twitter:image" content={ meta.Image }/>
+	<meta name="twitter:image:alt" content={ site.ShareTitle }/>
+	@templ.JSONScript("person-ld", personLD(page, meta)).WithType("application/ld+json")
+	<script type="module" src={ static.URL(static.PortfolioScript) } nonce={ templ.GetNonce(ctx) }></script>
+}
+
+templ portfolioHeader(page apiclient.PortfolioPage) {
+	{{ sections := page.Portfolio.Site.Sections }}
+	<header class="pf-header" data-component="header">
+		<div class="pf-wrap pf-header-row">
+			<a href="#main" class="pf-brand" aria-label={ page.Portfolio.Name + ", top of page" }>
+				<span class="pf-brand-mark" aria-hidden="true">
+					<svg viewBox="0 0 24 24"><path d="M4 7h6v10H4zM14 4h6v6h-6zM14 14h6v6h-6zM10 12h4M17 10v4"></path></svg>
+				</span>
+				<span class="pf-brand-name">{ page.Portfolio.Name }</span>
+				<span class="pf-status" aria-hidden="true"><span class="pf-led"></span>online</span>
+			</a>
+			<nav class="pf-nav" aria-label="Sections">
+				for _, section := range []apiclient.Section{sections.Work, sections.Network, sections.Videos, sections.Uplinks, sections.Archive} {
+					<a href={ templ.SafeURL("#" + section.ID) }><span aria-hidden="true">{ section.Number }</span>{ section.Title }</a>
+				}
+			</nav>
+			<div class="pf-header-actions">
+				@uikit.ThemeToggle("Toggle dark mode")
+			</div>
+		</div>
+	</header>
+}
+
+// sectionHead is every section's numbered heading.
+templ sectionHead(section apiclient.Section) {
+	<header class="pf-section-head" data-reveal>
+		<p class="pf-section-number"><span>{ section.Number }</span> / { section.ID }</p>
+		<h2 id={ section.ID + "-title" } class="pf-section-title">{ section.Title }</h2>
+		<p class="pf-section-intro">{ section.Intro }</p>
+	</header>
+}
+
+templ portfolioFooter(page apiclient.PortfolioPage) {
+	<footer class="pf-footer" data-component="footer">
+		<div class="pf-wrap pf-footer-row">
+			<p><strong>{ page.Portfolio.Name }</strong> · { page.Portfolio.Site.Footer }</p>
+			<p class="pf-footer-links">
+				for _, link := range page.Portfolio.Socials {
+					<a href={ templ.SafeURL(link.URL) } target="_blank" rel="me noopener">{ link.Name }</a>
+				}
+				<a href="#main">Top ↑</a>
+			</p>
+		</div>
+	</footer>
+}

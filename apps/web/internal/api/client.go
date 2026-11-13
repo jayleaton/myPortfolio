@@ -15,6 +15,8 @@ type Client struct {
 	users    *Users
 	sessions *Sessions
 	social   *Social // nil: no social sign-in endpoints (SocialProviders is empty)
+	// nil: no portfolio (Portfolio and PortfolioFollowers are empty)
+	portfolio *Portfolio
 }
 
 var _ apiclient.Client = (*Client)(nil)
@@ -28,6 +30,28 @@ func NewClient(users *Users, sessions *Sessions) *Client {
 func (client *Client) WithSocial(social *Social) *Client {
 	client.social = social
 	return client
+}
+
+// WithPortfolio adds the portfolio endpoints and returns client.
+func (client *Client) WithPortfolio(portfolio *Portfolio) *Client {
+	client.portfolio = portfolio
+	return client
+}
+
+// Portfolio is GET /portfolio.
+func (client *Client) Portfolio(ctx context.Context) (apiclient.PortfolioPage, error) {
+	if client.portfolio == nil {
+		return apiclient.PortfolioPage{}, nil
+	}
+	return client.portfolio.page.Call(ctx, client.portfolio.gate, NoInput{})
+}
+
+// PortfolioFollowers is GET /portfolio/followers.
+func (client *Client) PortfolioFollowers(ctx context.Context) (apiclient.Followers, error) {
+	if client.portfolio == nil {
+		return apiclient.Followers{}, nil
+	}
+	return client.portfolio.followers.Call(ctx, client.portfolio.gate, NoInput{})
 }
 
 // SocialProviders is GET /auth/social/providers.

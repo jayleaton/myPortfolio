@@ -10,6 +10,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CacheEntry struct {
+	Key       string    `json:"key"`
+	Value     []byte    `json:"value"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 type User struct {
 	ID               string             `json:"id"`
 	Name             string             `json:"name"`

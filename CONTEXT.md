@@ -43,7 +43,7 @@ Use these words when talking about Go Fast Stack (this repo), in code review, co
 | failed head | a head with a failed `local-ci` (`make ci-local FAILED=`): final, never attested again; the fix is a new commit | `verify.FailedHeadRefusal` |
 | boundary test | a test at a test boundary, e.g. the four cases of a route test (401, 403, 400, 2xx) | `*_test.go` in a boundary dir |
 | routes config | `AppRoutes` (pages), `APIRoutes` (endpoints) | `apps/web/internal/config/routes.go` |
-| feature toggles | `config.Features`: email verification, template welcome, Expo dev origins | `apps/web/internal/config/features.go` |
+| feature toggles | `config.Features`: email verification, account pages, Expo dev origins | `apps/web/internal/config/features.go` |
 | session | a row in `"session"`; the signed `better-auth.session_token` cookie (web) or `Authorization: Bearer <token>` (mobile) points at it | `packages/auth/` |
 | dev mailer | logs auth email links instead of sending them (no `RESEND_API_KEY`) | `packages/auth/mailer.go` |
 | live secret | a secret served by the secrets provider that rotates without a redeploy (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_SECRET_PREVIOUS`, `RESEND_API_KEY`: everything but `DOPPLER_TOKEN`); consumers reach it through a typed accessor on `config.Secrets` | `apps/web/internal/config/secrets.go` |

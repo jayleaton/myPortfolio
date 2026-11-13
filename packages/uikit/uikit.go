@@ -340,6 +340,10 @@ type Document struct {
 	Theme string
 	// CSS, Script and Favicon are asset URLs (cache-busted by the app).
 	CSS, Script, Favicon string
+	// Head is extra <head> content (share-card meta, preloads); optional.
+	Head templ.Component
+	// BodyClass replaces the body's default classes; optional.
+	BodyClass string
 }
 
 // LocaleOption is one entry of LocaleMenu.

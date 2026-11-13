@@ -19,7 +19,7 @@ func contentSecurityPolicy(nonce string) string {
 	return "default-src 'none'; " +
 		"script-src 'self' 'nonce-" + nonce + "'; " +
 		"style-src 'self'; " +
-		"img-src 'self' data:; " +
+		"img-src 'self' data: https://i.ytimg.com; " +
 		"font-src 'self'; " +
 		"connect-src 'self'; " +
 		"manifest-src 'self'; " +

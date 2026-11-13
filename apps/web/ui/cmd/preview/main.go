@@ -33,7 +33,6 @@ const (
 func main() {
 	addr := flag.String("addr", "0.0.0.0:3001", "listen address")
 	verify := flag.Bool("verify", false, "require email verification (production behavior)")
-	welcome := flag.Bool("welcome", true, "show the template welcome page at /")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -55,7 +54,7 @@ func main() {
 	mux.Handle("/", ui.New(ui.Deps{
 		API:      api.NewClient(api.NewUsers(Users{Store: store}, gate), api.NewSessions(authenticator{fake: fakeAuth}, gate)),
 		Gate:     gate,
-		Features: config.Features{EmailVerification: *verify, TemplateWelcome: *welcome},
+		Features: config.Features{EmailVerification: *verify, AccountPages: true},
 		Logger:   log,
 	}).Handler())
 

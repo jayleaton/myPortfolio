@@ -56,6 +56,11 @@ type Client interface {
 	// may be redirected to: a safe relative path, a trusted origin or the
 	// mobile app's deep-link scheme.
 	CheckCallbackURL(ctx context.Context, callbackURL string) error
+	// Portfolio is the public home page's data; PortfolioFollowers the X
+	// follower count alone (the live stream's poll). Both read memory only.
+	Portfolio(ctx context.Context) (PortfolioPage, error)
+	PortfolioFollowers(ctx context.Context) (Followers, error)
+
 	// AuthErrorForCode is the auth error behind an ?error=<code> an emailed
 	// link's redirect carries (Better Auth codes, e.g. INVALID_USER); nil
 	// for an unknown code.
@@ -99,6 +104,15 @@ type (
 	SocialStart   = services.SocialStart
 	SocialOutcome = services.SocialOutcome
 	Cookie        = services.Cookie
+	// The portfolio: content plus its live values.
+	PortfolioPage = services.PortfolioPage
+	Followers     = services.Followers
+	Project       = services.Project
+	Link          = services.Link
+	Metric        = services.Metric
+	Video         = services.Video
+	Videos        = services.Videos
+	Section       = services.Section
 )
 
 // Inputs, validated by the API (Validate runs there, not in the UI).

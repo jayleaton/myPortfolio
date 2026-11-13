@@ -13,31 +13,10 @@ import (
 	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
 	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
 	"github.com/jayleaton/myPortfolio/apps/web/ui/i18n"
-	"github.com/jayleaton/myPortfolio/apps/web/ui/welcome"
 )
 
 // resendCooldown matches the original's five minutes between resends.
 const resendCooldown = 5 * time.Minute
-
-func (ui *UI) home(writer http.ResponseWriter, request *http.Request, caller apiclient.Caller) {
-	if caller.SignedIn() {
-		http.Redirect(writer, request, config.AppRoutes.Dashboard, http.StatusSeeOther)
-		return
-	}
-	if ui.features.TemplateWelcome {
-		ui.render(writer, request, http.StatusOK, welcome.LandingPage())
-		return
-	}
-	ui.render(writer, request, http.StatusOK, HomePage())
-}
-
-func (ui *UI) why(writer http.ResponseWriter, request *http.Request, _ apiclient.Caller) {
-	if !ui.features.TemplateWelcome {
-		http.NotFound(writer, request)
-		return
-	}
-	ui.render(writer, request, http.StatusOK, welcome.WhyPage())
-}
 
 func (ui *UI) loginPage(writer http.ResponseWriter, request *http.Request, _ apiclient.Caller) {
 	ctx := request.Context()

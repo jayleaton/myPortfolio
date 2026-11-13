@@ -27,6 +27,7 @@ type UI struct {
 	api      apiclient.Client
 	features config.Features
 	appName  string
+	site     *url.URL
 	secure   bool
 	log      *slog.Logger
 	now      func() time.Time
@@ -45,6 +46,7 @@ func New(deps Deps) *UI {
 		api:      deps.API,
 		features: deps.Features,
 		appName:  deps.AppName,
+		site:     deps.PublicURL,
 		secure:   deps.SecureCookies,
 		log:      deps.Logger,
 		now:      deps.Now,
@@ -93,7 +95,17 @@ func (ui *UI) Routes(mux Mux) {
 	}))
 
 	page(apiclient.Public, "GET /{$}", ui.home)
-	page(apiclient.Public, "GET "+config.AppRoutes.Why, ui.why)
+	page(apiclient.Public, "GET "+routes.LiveFollowers, ui.liveFollowers)
+	mux.Handle("GET "+routes.Robots, http.HandlerFunc(ui.robots))
+	if ui.features.AccountPages {
+		ui.accountRoutes(page, action)
+	}
+	action(apiclient.Public, "POST "+routes.Locale, ui.setLocale)
+}
+
+// accountRoutes are the template's sign-in, dashboard and account pages
+// (config.Features.AccountPages).
+func (ui *UI) accountRoutes(page, action func(apiclient.Policy, string, handlerFunc)) {
 	page(apiclient.Public, "GET "+config.AppRoutes.Login, ui.loginPage)
 	action(apiclient.Public, "POST "+config.AppRoutes.Login, ui.login)
 	page(apiclient.Public, "GET "+config.AppRoutes.Signup, ui.signupPage)
@@ -122,7 +134,6 @@ func (ui *UI) Routes(mux Mux) {
 	action(apiclient.SignedIn, "POST "+routes.AccountRevokeOthers, ui.revokeOtherSessions)
 	action(apiclient.SignedIn, "POST "+routes.AccountDelete, ui.deleteAccount)
 	action(apiclient.Public, "POST "+routes.Logout, ui.logout)
-	action(apiclient.Public, "POST "+routes.Locale, ui.setLocale)
 }
 
 // Handler returns the UI for server.Deps.UI: Routes behind the browser

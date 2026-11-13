@@ -6,21 +6,21 @@
    the surface they sit on; packages/uikit/README.md lists the pairs. */
 :root {
   /* Page and panels */
-  --ui-background: light-dark(#f8fafc, #0b1120);
-  --ui-foreground: light-dark(#0f172a, #f1f5f9);
-  --ui-surface: light-dark(#ffffff, #111827);
-  --ui-muted: light-dark(#f1f5f9, #1e293b);
-  --ui-muted-foreground: light-dark(#475569, #94a3b8);
-  --ui-border: light-dark(#e2e8f0, #1f2937);
-  --ui-input: light-dark(#8590a2, #6b7280);
-  --ui-ring: light-dark(#4f46e5, #a5b4fc);
+  --ui-background: light-dark(#eef3fb, #05070b);
+  --ui-foreground: light-dark(#0b1a33, #e6edf7);
+  --ui-surface: light-dark(#ffffff, #0b1018);
+  --ui-muted: light-dark(#e2eaf6, #111a26);
+  --ui-muted-foreground: light-dark(#44546f, #8b9bb4);
+  --ui-border: light-dark(#c9d6ea, #1b2433);
+  --ui-input: light-dark(#7d8ca6, #5d6b82);
+  --ui-ring: light-dark(#0b5cd5, #22d3ee);
 
   /* Brand */
-  --ui-primary: light-dark(#4f46e5, #818cf8);
-  --ui-primary-foreground: light-dark(#ffffff, #0b1120);
-  --ui-primary-hover: light-dark(#4338ca, #a5b4fc);
-  --ui-accent: light-dark(#eef2ff, #1e1b4b);
-  --ui-accent-foreground: light-dark(#3730a3, #c7d2fe);
+  --ui-primary: light-dark(#0b5cd5, #22d3ee);
+  --ui-primary-foreground: light-dark(#ffffff, #03141a);
+  --ui-primary-hover: light-dark(#0948a8, #67e8f9);
+  --ui-accent: light-dark(#dce9fc, #08262e);
+  --ui-accent-foreground: light-dark(#0a3f8f, #a5f3fc);
 
   /* Status: solid (buttons), soft (alerts, badges) */
   --ui-danger: light-dark(#dc2626, #f87171);
@@ -47,7 +47,8 @@
   --ui-radius-card: 0.875rem;
   --ui-shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.04);
   --ui-shadow-popover: 0 10px 30px -10px rgb(15 23 42 / 0.25), 0 4px 10px -4px rgb(15 23 42 / 0.12);
-  --ui-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  --ui-font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     'Noto Sans', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
-  --ui-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --ui-font-display: 'Space Grotesk', var(--ui-font-sans);
+  --ui-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }

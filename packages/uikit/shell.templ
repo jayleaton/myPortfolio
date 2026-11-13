@@ -28,11 +28,20 @@ templ Page(document Document) {
 				<link rel="icon" href={ document.Favicon }/>
 			}
 			<link rel="stylesheet" href={ document.CSS }/>
+			if document.Head != nil {
+				@document.Head
+			}
 			if document.Script != "" {
 				<script type="module" src={ document.Script } nonce={ templ.GetNonce(ctx) }></script>
 			}
 		</head>
-		<body class="min-h-dvh bg-background text-foreground">
+		<body
+			if document.BodyClass != "" {
+				class={ document.BodyClass }
+			} else {
+				class="min-h-dvh bg-background text-foreground"
+			}
+		>
 			{ children... }
 		</body>
 	</html>

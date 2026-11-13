@@ -9,7 +9,7 @@ here: re-theme in `packages/uikit/theme.css`.
 |---|---|
 | `ui` | `ui.New(deps)` (`Routes(mux)` / `Handler()`), the `Auth`/`Users` interfaces, handlers, auth, dashboard and Account pages |
 | `ui/view` | the layout (`Layout` for public pages, `SectionLayout(title, Section…)` to highlight the signed-in nav: `uikit.Page` + `uikit.AppShell` with Dashboard/Account, theme toggle, language menu, sign out), the layout state, and app-local components uikit lacks (`Avatar`, `CardFooter`, `AltLink`) |
-| `ui/welcome` | template welcome landing + `/why` (feature-flagged, deletable; see its README) |
+| `portfolio*.go`, `portfolio_*.templ` | the public portfolio at `/`: one templ file per section, decorative visuals in `portfolio_visuals.templ`, styles in `styles/portfolio.css` |
 | `ui/i18n` | `messages/{en,ja}.json`, locale negotiation, `i18n.T(ctx, key)` |
 | `ui/routes` | the UI's own action endpoints (logout, locale, live stream, settings, delete, static); pages use `config.AppRoutes` |
 | `ui/static` | embedded `app.css` (generated), pinned `datastar-1.0.4.js`, favicon |
@@ -100,7 +100,7 @@ tested with mocked ports. Check UI changes in a real browser (`go run ./apps/web
 - **Theme**: colors are uikit tokens defined with `light-dark()`. The theme toggle writes a `theme` cookie and the
   server renders `<html class="dark|light">` from it; with no cookie the system preference applies. The first paint is
   right without a pre-paint script.
-- **App name**: the header brand, `<title>`, auth pages and the welcome footer show `Deps.AppName` (`APP_NAME`, default
+- **App name**: the header brand, `<title>`, auth pages show `Deps.AppName` (`APP_NAME`, default
   `config.DefaultAppName`), read in templates with `view.AppName(view.StateFrom(ctx))`.
 - **i18n**: messages are flat strings with no plurals or placeholders, so `i18n` is a map lookup (no library; add
   go-i18n when a message needs plural rules). Locale = `locale` cookie, then the highest-weighted supported
