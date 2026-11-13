@@ -10,9 +10,11 @@
 #   2. migrate the web app's database, then the admin app's (when apps/admin
 #              exists), with the binaries' own `migrate`, as pre-deploy does.
 #   3. boot    both with APP_ENV=production and only the config production
-#              requires (no Doppler, no optional integrations; a dummy
-#              RESEND_API_KEY and a FROM_EMAIL off the example domains, which
-#              production requires; nothing is sent) and wait for /healthz 200
+#              requires (no Doppler, no optional integrations; web runs with
+#              config.Features.Email off, so it gets no FROM_EMAIL or
+#              RESEND_API_KEY and this proves it boots without them; admin
+#              gets a dummy RESEND_API_KEY and a FROM_EMAIL off the example
+#              domains, which it requires; nothing is sent) and wait for /healthz 200
 #              from the very process it started: it refuses to start when a
 #              smoke port already answers (a leftover server would answer for
 #              a build that cannot boot), and a 200 counts only while that
@@ -137,8 +139,7 @@ done
 admin=false
 [ -x "$work/admin" ] && [ -n "$admin_db" ] && admin=true
 web_env=(APP_ENV=production PORT="$web_port" PUBLIC_URL="http://127.0.0.1:$web_port"
-  DATABASE_URL="$app_db" AUTH_SECRET=release-smoke-web-auth-secret-0123456789 RESEND_API_KEY=re_release_smoke_unused
-  FROM_EMAIL="$smoke_from_email")
+  DATABASE_URL="$app_db" AUTH_SECRET=release-smoke-web-auth-secret-0123456789)
 admin_env=(APP_ENV=production ADMIN_PORT="$admin_port" ADMIN_PUBLIC_URL="http://127.0.0.1:$admin_port"
   DATABASE_URL="$app_db" ADMIN_DATABASE_URL="$admin_db" ADMIN_AUTH_SECRET=release-smoke-admin-auth-secret-0123456789
   RESEND_API_KEY=re_release_smoke_unused FROM_EMAIL="$smoke_from_email")

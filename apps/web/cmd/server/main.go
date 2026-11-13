@@ -186,6 +186,56 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	return authn.Shutdown(shutdownCtx)
 }
 
+// newMailer is the auth mailer. With config.Features.Email off (no
+// accounts) it drops every message: there is no sender to send from and
+// nothing a visitor could need, so RESEND_API_KEY is not read at all. On,
+// it is Resend when RESEND_API_KEY is set (required in production), else
+// the dev mailer that logs links; a rotated key rebuilds the Resend client.
+func newMailer(cfg config.Config, log *slog.Logger) auth.Mailer {
+	if !cfg.Features.Email {
+		log.Info("mailer: email off (config.Features.Email): auth email is dropped")
+		return disabledMailer{log: log}
+	}
+	dev := auth.NewDevMailer(log)
+	mailer := auth.NewSwapMailer(dev)
+	cfg.Secrets.OnResendAPIKey(func(key secrets.Secret) error {
+		if key.IsZero() {
+			mailer.Swap(dev)
+			log.Warn("RESEND_API_KEY not set: auth email links are logged, not sent")
+			return nil
+		}
+		mailer.Swap(auth.NewResendMailer(reveal.Value(key), cfg.FromEmail))
+		log.Info("mailer: resend client built", "secrets_provider", cfg.Secrets.Provider(), "resend_api_key", key.Fingerprint())
+		return nil
+	})
+	return mailer
+}
+
+// disabledMailer drops auth email (config.Features.Email off). It logs that
+// a message was dropped, never its link (the link carries a token).
+type disabledMailer struct{ log *slog.Logger }
+
+func (mailer disabledMailer) drop(ctx context.Context, kind string) error {
+	mailer.log.WarnContext(ctx, "mailer: email off, dropped auth email", "kind", kind)
+	return nil
+}
+
+func (mailer disabledMailer) SendVerificationEmail(ctx context.Context, _, _ string) error {
+	return mailer.drop(ctx, "verification")
+}
+
+func (mailer disabledMailer) SendPasswordResetEmail(ctx context.Context, _, _ string) error {
+	return mailer.drop(ctx, "password reset")
+}
+
+func (mailer disabledMailer) SendEmailChangeNotice(ctx context.Context, _, _ string) error {
+	return mailer.drop(ctx, "email change notice")
+}
+
+func (mailer disabledMailer) SendSetPasswordEmail(ctx context.Context, _, _ string) error {
+	return mailer.drop(ctx, "set password")
+}
+
 // rotationTimeout bounds one live rotation (connecting a new pool, rewrapping
 // auth keys). It runs on the secrets poller, never on a request.
 const rotationTimeout = 30 * time.Second
@@ -223,23 +273,12 @@ func newPool(ctx context.Context, cfg config.Config, log *slog.Logger) (*databas
 	return pool, nil
 }
 
-// newAuth configures packages/auth from config: Resend when RESEND_API_KEY is
+// newAuth configures packages/auth from config, with newMailer. Resend when RESEND_API_KEY is
 // set (required in production), otherwise email links are logged. The key and
 // AUTH_SECRET[_PREVIOUS] are live secrets: a rotated key rebuilds the Resend
 // client, rotated auth secrets update the keyring (no one is signed out).
 func newAuth(ctx context.Context, cfg config.Config, pool *database.Pool, log *slog.Logger) (*auth.Auth, error) {
-	dev := auth.NewDevMailer(log)
-	mailer := auth.NewSwapMailer(dev)
-	cfg.Secrets.OnResendAPIKey(func(key secrets.Secret) error {
-		if key.IsZero() {
-			mailer.Swap(dev)
-			log.Warn("RESEND_API_KEY not set: auth email links are logged, not sent")
-			return nil
-		}
-		mailer.Swap(auth.NewResendMailer(reveal.Value(key), cfg.FromEmail))
-		log.Info("mailer: resend client built", "secrets_provider", cfg.Secrets.Provider(), "resend_api_key", key.Fingerprint())
-		return nil
-	})
+	mailer := newMailer(cfg, log)
 	keys, err := cfg.Secrets.AuthSecrets()
 	if err != nil {
 		return nil, err

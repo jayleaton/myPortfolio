@@ -278,6 +278,9 @@ func (graph iacGraph) check(cfg platform.Config, env string, names, keep []strin
 			if !readsName(readBy[service], name) {
 				continue
 			}
+			if name == "FROM_EMAIL" && !cfg.Email.On() {
+				continue // email off: the app never reads it, so deleting a hand-set one is harmless
+			}
 			if _, set := resource.Variables[name]; !set && !graph.ignored(service, name) {
 				bad("%s/%s is neither set by the graph nor ignored: apply deletes it if someone sets it by hand", service, name)
 			}

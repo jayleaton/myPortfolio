@@ -67,3 +67,9 @@ Templ comes first, then CSS. Both outputs are committed; `make check-generated` 
 The template's sign-in, dashboard and account pages are still in the code but not mounted (`config.Features.AccountPages`).
 The admin app, backups and the Expo app are template workspaces that are not deployed (`deploy/platform.yaml`:
 `admin: false`, `backups.enabled: false`).
+
+Email is off too. With no accounts the site never sends mail, so `config.Features.Email` follows `AccountPages`: production
+boots without `RESEND_API_KEY` or `FROM_EMAIL`, the mailer is a no-op that logs only the message kind, and
+`deploy/platform.yaml` has `email.enabled: false` (no sender, no Resend prompt in `railway-setup`). `make release-smoke`
+boots the production binary with no email variables to prove it. Turning accounts back on turns email back on, and then
+needs a verified sender.

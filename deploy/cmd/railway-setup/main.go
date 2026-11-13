@@ -319,7 +319,7 @@ func (setup *setup) secretSteps(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
-			if value := vars["RESEND_API_KEY"]; value != nil && *value == platform.ResendPlaceholder && !setup.onDoppler(vars) {
+			if value := vars["RESEND_API_KEY"]; setup.cfg.Email.On() && value != nil && *value == platform.ResendPlaceholder && !setup.onDoppler(vars) {
 				resend = append(resend, env+"/"+svc)
 			}
 			switch setup.cfg.DopplerMode(env) {

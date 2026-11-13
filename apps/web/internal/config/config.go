@@ -68,9 +68,11 @@ func Load(getenv func(string) string) (Config, error) {
 	default:
 		errs = append(errs, fmt.Errorf("APP_ENV must be development, test or production, got %q", cfg.Env))
 	}
+	cfg.Features = FeaturesFor(cfg.Env)
 	// Unset, FROM_EMAIL falls back to the example sender, which no mail
 	// provider will send from: every auth email would fail, only in the log.
-	if cfg.Env == Production {
+	// Without Features.Email nothing is sent, so no sender is needed.
+	if cfg.Env == Production && cfg.Features.Email {
 		switch {
 		case get("FROM_EMAIL", "") == "":
 			errs = append(errs, errors.New("FROM_EMAIL is required in production (a sender on your verified email domain)"))
@@ -104,9 +106,7 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	cfg.Social = loadSocial(get, &errs)
 	cfg.Storage = loadStorageOptions(get, &errs)
-	cfg.Secrets = loadSecrets(cfg.Env, cfg.Social, get, &errs)
-
-	cfg.Features = FeaturesFor(cfg.Env)
+	cfg.Secrets = loadSecrets(cfg.Env, cfg.Env == Production && cfg.Features.Email, cfg.Social, get, &errs)
 	if len(errs) > 0 {
 		return Config{}, fmt.Errorf("invalid config: %w", errors.Join(errs...))
 	}

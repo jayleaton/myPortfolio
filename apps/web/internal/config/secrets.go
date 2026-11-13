@@ -79,7 +79,8 @@ func (accessors Secrets) OnAuthSecrets(fn func(secrets.Keyring) error) {
 
 // validateLive checks the live secrets of one snapshot (env at boot, every
 // remote fetch before it is published). Messages name keys, never values.
-func validateLive(env Env, social Social) func(get func(name string) string) []error {
+// requireMail (production with Features.Email) requires RESEND_API_KEY.
+func validateLive(requireMail bool, social Social) func(get func(name string) string) []error {
 	return func(get func(string) string) []error {
 		var errs []error
 		if get(secretDatabaseURL) == "" {
@@ -87,7 +88,7 @@ func validateLive(env Env, social Social) func(get func(name string) string) []e
 		}
 		errs = append(errs, validateKeyring(get, secretAuth)...)
 		errs = append(errs, validateStorage(get)...)
-		if env == Production && get(secretResendAPIKey) == "" {
+		if requireMail && get(secretResendAPIKey) == "" {
 			errs = append(errs, errors.New("RESEND_API_KEY is required in production"))
 		}
 		return append(errs, social.validate(get)...)
@@ -118,9 +119,9 @@ func validateKeyring(get func(string) string, name string) []error {
 
 // loadSecrets builds the Manager from SECRETS_PROVIDER and its bootstrap
 // vars. Every problem is appended to errs.
-func loadSecrets(env Env, social Social, get func(key, fallback string) string, errs *[]error) Secrets {
+func loadSecrets(env Env, requireMail bool, social Social, get func(key, fallback string) string, errs *[]error) Secrets {
 	manager, problems := secrets.Bootstrap(func(key string) string { return get(key, "") }, secrets.BootstrapOptions{
-		Keys: liveSecrets, Validate: validateLive(env, social), Production: env == Production,
+		Keys: liveSecrets, Validate: validateLive(requireMail, social), Production: env == Production,
 	})
 	*errs = append(*errs, problems...)
 	return Secrets{manager}

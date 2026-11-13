@@ -98,8 +98,15 @@ type Secrets struct {
 
 // Email holds the sender address auth emails use.
 type Email struct {
-	From string `yaml:"from"`
+	// Enabled (default true) is whether the apps send auth email. false
+	// for an app whose config.Features.Email is off (no accounts): no
+	// FROM_EMAIL is set or required, and no Resend key is asked for.
+	Enabled *bool  `yaml:"enabled"`
+	From    string `yaml:"from"`
 }
+
+// On reports whether the apps send auth email (email.enabled, default true).
+func (email Email) On() bool { return email.Enabled == nil || *email.Enabled }
 
 // EnvSettings are one environment's values for variables IaC would
 // otherwise derive. Each is "" (the default), a value, or ManualValue: set
@@ -196,6 +203,9 @@ func RealSender(address string) bool {
 // every service runs with APP_ENV=production, which refuses to boot with
 // one. A manual value is set by hand in Railway and is not checked here.
 func (config Config) SenderProblems() []string {
+	if !config.Email.On() {
+		return nil
+	}
 	var out []string
 	for _, env := range config.Environments {
 		from := config.Settings(env).FromEmail
@@ -427,6 +437,9 @@ func (config Config) Validate() error {
 	case ProviderDoppler, ProviderEnv:
 	default:
 		add("secrets.provider must be %s or %s, got %q", ProviderDoppler, ProviderEnv, config.Secrets.Provider)
+	}
+	if config.Admin && !config.Email.On() {
+		add("admin: true needs email.enabled (admins are invited by email)")
 	}
 	if config.Email.From != "" && !strings.Contains(config.Email.From, "@") {
 		add("email.from must be an email address, got %q", config.Email.From)

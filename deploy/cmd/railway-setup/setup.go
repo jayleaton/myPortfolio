@@ -880,6 +880,9 @@ func (setup *setup) secrets(ctx context.Context) error {
 			if setup.onDoppler(current) {
 				continue // RESEND_API_KEY comes from Doppler
 			}
+			if !setup.cfg.Email.On() {
+				continue // email off: the app reads no Resend key
+			}
 			if ask := setup.ask(ctx, in, "RESEND_API_KEY", svc, env); ask != "" {
 				writes[svc]["RESEND_API_KEY"] = secretWrite{ask, true}
 				setup.change("%s/%s RESEND_API_KEY set (sealed)", env, svc)

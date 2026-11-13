@@ -40,7 +40,9 @@ func (setup *setup) doctor(ctx context.Context) error {
 		return withCode(exitPreflight, "preflight failed")
 	}
 	setup.report(check{Name: "railway cli", Status: "ok", Detail: strings.TrimSpace(firstLine(string(who)))})
-	if problems := setup.cfg.SenderProblems(); len(problems) > 0 {
+	if problems := setup.cfg.SenderProblems(); !setup.cfg.Email.On() {
+		setup.report(check{Name: "email.from", Status: "ok", Detail: "email off (email.enabled: false): no sender needed"})
+	} else if len(problems) > 0 {
 		fail(check{Name: "email.from", Detail: strings.Join(problems, "; ") + ": production refuses to boot without a real sender", Fix: senderFix})
 	} else {
 		setup.report(check{Name: "email.from", Status: "ok", Detail: setup.cfg.Email.From})

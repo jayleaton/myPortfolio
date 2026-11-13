@@ -325,7 +325,7 @@ func (config Config) service(env string, app app) railway.ServiceConfig {
 		"PORT":             fmt.Sprint(AppPort),
 		"CLIENT_IP_HEADER": "X-Real-IP", // Railway's edge sets it; auth rate limits key on it
 	}
-	if from := config.Settings(env).FromEmail; from != ManualValue {
+	if from := config.Settings(env).FromEmail; from != ManualValue && config.Email.On() {
 		vars["FROM_EMAIL"] = from
 	}
 	for key, value := range app.env {

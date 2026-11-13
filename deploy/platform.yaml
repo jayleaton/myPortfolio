@@ -62,6 +62,10 @@ secrets:
 # which refuses to boot without one or with an example address, so plan and
 # apply refuse first. Or pass --email-from / PLATFORM_EMAIL_FROM.
 email:
+  # false: the apps send no email (this portfolio has no accounts:
+  # config.Features.Email is off), so no sender or Resend key is needed and
+  # FROM_EMAIL is not set. Set true and a verified sender to turn it on.
+  enabled: false
   from: ""
 
 # What one environment's apps see as their origin and sender. public_url
