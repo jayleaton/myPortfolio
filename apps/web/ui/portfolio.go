@@ -187,6 +187,24 @@ func projectHref(project apiclient.Project) string {
 	return path + "#" + project.Slug
 }
 
+// shipped counts the products and sites that are live: the featured SaaS
+// products and the network's entries. A network entry that is one of the
+// social profiles (the YouTube channel) is a channel, not a product or
+// site, so it is not counted.
+func shipped(page apiclient.PortfolioPage) int {
+	profiles := make(map[string]bool, len(page.Portfolio.Socials))
+	for _, link := range page.Portfolio.Socials {
+		profiles[link.URL] = true
+	}
+	count := len(inArea(page.Portfolio.Featured, areaSaaS))
+	for _, link := range page.Portfolio.Network {
+		if !profiles[link.URL] {
+			count++
+		}
+	}
+	return count
+}
+
 // names joins the projects' names for a one-line summary.
 func names(projects []apiclient.Project) string {
 	out := make([]string, 0, len(projects))

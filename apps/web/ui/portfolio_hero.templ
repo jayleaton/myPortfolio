@@ -45,7 +45,7 @@ templ doorways(page apiclient.PortfolioPage) {
 		<ul class="pf-wrap pf-door-list">
 			<li>
 				@doorway(navItem{Path: config.AppRoutes.SaaS, Page: pages.SaaS}, names(products)) {
-					<span class="pf-figure">{ itoa(len(products) + len(page.Portfolio.Network)) }</span>
+					<span class="pf-figure">{ itoa(shipped(page)) }</span>
 					<span class="pf-door-note pf-mono">{ pages.SaaS.Teaser }</span>
 				}
 			</li>
