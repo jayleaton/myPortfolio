@@ -268,7 +268,6 @@ var portfolio = Portfolio{
 			Uplinks:  Section{ID: "uplinks", Number: "01", Title: "Find me", Intro: "Follow along, hire me, or buy me a coffee."},
 			Videos:   Section{ID: "videos", Number: "02", Title: "Build Things", Intro: "I build in public on YouTube. The latest uploads, fetched live."},
 		},
-		Footer: "Go, templ and Datastar on Railway.",
 	},
 	// FallbackVideos show until the first successful channel fetch.
 	FallbackVideos: []Video{

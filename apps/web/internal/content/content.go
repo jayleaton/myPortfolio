@@ -39,7 +39,6 @@ type Site struct {
 	Hardware Hardware
 	Pages    Pages
 	Sections Sections
-	Footer   string
 }
 
 // Hardware is the machine the published numbers were measured on: its

@@ -115,6 +115,17 @@ body.pf {
   line-height: var(--pf-leading);
   -webkit-font-smoothing: antialiased;
 }
+/* The shell is at least one window tall and the content takes the spare
+   height, so the footer rests at the bottom of the window on a short page
+   and follows the content on a long one. */
+.pf-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.pf-root > main {
+  flex: 1 0 auto;
+}
 .pf a {
   color: inherit;
 }
