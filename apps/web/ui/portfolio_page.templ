@@ -215,12 +215,14 @@ templ sectionHead(section apiclient.Section) {
 	</header>
 }
 
-// portfolioFooter is the same small footer on every page.
+// portfolioFooter is the same small footer on every page: the name and
+// the page links. It rests at the bottom of the window on a short page
+// (.pf-root in portfolio.css).
 templ portfolioFooter(page apiclient.PortfolioPage) {
 	<footer class="pf-footer" data-component="footer">
 		<div class="pf-ruler" aria-hidden="true"></div>
 		<div class="pf-wrap pf-footer-row">
-			<p class="pf-footer-note"><span class="pf-mark"><span class="pf-mark-dot" aria-hidden="true"></span>{ page.Portfolio.Name }</span>{ page.Portfolio.Site.Footer }</p>
+			<p class="pf-footer-note"><span class="pf-mark"><span class="pf-mark-dot" aria-hidden="true"></span>{ page.Portfolio.Name }</span></p>
 			<p class="pf-footer-links pf-mono">
 				for _, item := range navPages(page) {
 					<a href={ templ.SafeURL(item.Path) }>{ item.Page.Name }</a>
