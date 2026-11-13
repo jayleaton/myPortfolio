@@ -1,0 +1,512 @@
+# golangci-lint v2. `make lint` runs it; `make lint-layering` proves the
+# depguard rules below still reject forbidden imports.
+version: "2"
+
+run:
+  # Every entry point (make lint, check-fast, the pre-push hook make land's
+  # push runs, make lint-layering, deploy/) may start while another worktree
+  # lints: wait for golangci-lint's lock instead of failing with "parallel
+  # golangci-lint is running" (which once failed a landing's push).
+  allow-serial-runners: true
+
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - bodyclose
+    - copyloopvar
+    - depguard
+    - forbidigo
+    - errorlint
+    - intrange
+    - misspell
+    - mnd # magic numbers: name the value as a commented const (AGENTS.md "Taste")
+    - nilerr
+    - noctx
+    - paralleltest # fast tests: every test calls t.Parallel() (AGENTS.md "Fast tests")
+    - rowserrcheck
+    - sqlclosecheck
+    - tparallel
+    - unconvert
+    - usestdlibvars
+    - wastedassign
+  settings:
+    # User administration lives in packages/auth (it owns the tables), so
+    # depguard cannot keep it from apps/web by import path: forbid the entry
+    # points instead. Only apps/admin (and auth's own tests) may call them.
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^auth\.NewUserAdmin$
+          pkg: ^github\.com/jayleaton/myPortfolio/packages/auth$
+          msg: user administration (ban, roles, any user's sessions) is for apps/admin only
+        - pattern: ^auth\.Auth\.Users$
+          pkg: ^github\.com/jayleaton/myPortfolio/packages/auth$
+          msg: user administration (ban, roles, any user's sessions) is for apps/admin only
+        # Route access (AGENTS.md "Architecture"): a request's session is read
+        # by one adapter per app (apps/*/internal/server, the gate's Resolver)
+        # and admitted by one route handler per transport (api.Route, the
+        # UI's route), so no handler checks a session by hand or skips its
+        # route's policy. See exclusions for where each is allowed.
+        - pattern: ^auth\.UserFrom$
+          pkg: ^github\.com/jayleaton/myPortfolio/packages/auth$
+          msg: "the caller comes from the route's access policy: register the route with api.Route / the UI's page or action and use the caller it passes (AGENTS.md \"Architecture\", docs/route-access.md)"
+        - pattern: ^access\.Gate\.Admit$
+          pkg: ^github\.com/jayleaton/myPortfolio/apps/(web|admin)/internal/access$
+          msg: "only the central route handler admits a request: register the route with api.Route / the UI's page or action and its access.Policy (docs/route-access.md)"
+        # UIs only (see exclusions): a page never links to, fetches or posts
+        # to the JSON API; forms post to the UI's own action routes.
+        - pattern: ^config\.APIRoutes$
+          pkg: ^github\.com/jayleaton/myPortfolio/apps/(web|admin)/internal/config$
+          msg: "the browser never talks to the JSON API: post to a UI action route (config.AppRoutes, ui/routes) that calls apiclient.Client (AGENTS.md \"Architecture\")"
+        # UIs only (see exclusions): the UI makes no outbound HTTP calls; its
+        # API client is in-process.
+        - pattern: ^http\.(Client|DefaultClient|Get|Head|Post|PostForm)$
+          pkg: ^net/http$
+          msg: "the UI calls the API in-process through apiclient.Client; it never makes HTTP requests (AGENTS.md \"Architecture\")"
+        # Tests only (see exclusions): a test that sleeps is slow and flaky.
+        - pattern: ^time\.Sleep$
+          msg: tests never sleep; wait on a channel or condition, or use testing/synctest for a fake clock (AGENTS.md "Fast tests")
+    # Magic numbers: a literal that carries meaning is a named const with a
+    # comment saying what it is (`const maxRequestBody = 1 << 20 // 1 MiB cap
+    # on JSON bodies`). 0 and 1 (and so -1) as plain counters and indexes are
+    # fine. go-mnd always skips _test.go: a test's literals are its expectations.
+    mnd:
+      ignored-numbers: ["0", "1"]
+    # Top-level tests must call t.Parallel(); a test that cannot (shared
+    # global state) says why with //nolint:paralleltest // <reason>.
+    # Subtests are parallel where they are slow; tparallel keeps it consistent.
+    paralleltest:
+      ignore-missing-subtests: true
+    # Layering: packages/database -> services -> transports (api, ui), for
+    # apps/web and apps/admin alike. See AGENTS.md "Architecture".
+    depguard:
+      rules:
+        transports:
+          files:
+            - "**/apps/web/internal/api/**"
+            - "**/apps/web/ui/**"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: transports call services; only packages/database talks to Postgres
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: transports call services (use services.User etc.), never repositories or sqlc
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets
+              desc: secrets reach consumers through config.Secrets accessors wired in cmd/server, never the store itself
+            - pkg: github.com/jayleaton/myPortfolio/packages/storage
+              desc: transports call services; object storage sits behind the services' ports
+        services:
+          files:
+            - "**/apps/web/internal/services/**"
+          deny:
+            - pkg: net/http
+              desc: services are transport-agnostic; return *services.Error and let the transport map it
+            - pkg: github.com/a-h/templ
+              desc: rendering belongs to apps/web/ui
+            - pkg: github.com/starfederation/datastar-go
+              desc: SSE belongs to apps/web/ui
+            - pkg: github.com/jackc/pgx
+              desc: services use repositories from packages/database
+            - pkg: github.com/jayleaton/myPortfolio/packages/database/sqlc
+              desc: services use repositories, not sqlc output
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api$
+              desc: services never import a transport
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/
+              desc: services never import a transport
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/ui
+              desc: services never import a transport
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/access
+              desc: route access is the transports' coarse gate; services get a services.Actor and decide record-level authorization themselves
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets
+              desc: services declare a port for what a secret enables (a client); cmd/server wires it from config.Secrets
+            - pkg: github.com/jayleaton/myPortfolio/packages/storage
+              desc: services declare ports (ObjectStore, ImageFetcher, ImageCodec); adapters in apps/web/internal/server wrap packages/storage
+        database:
+          files:
+            - "**/packages/database/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps
+              desc: packages/database is the bottom layer and never imports apps
+        auth:
+          files:
+            - "**/packages/auth/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps
+              desc: packages/auth is self-contained and never imports apps
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: packages/auth owns its tables and queries; it never uses the app's repositories
+        secrets:
+          files:
+            - "**/packages/secrets/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps
+              desc: packages/secrets is self-contained; apps/web/internal/config builds it
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: packages/secrets is self-contained
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: packages/secrets is self-contained
+            - pkg: go.uber.org/mock
+              desc: secrets tests use fake providers over httptest, never mocks
+        # Object storage (packages/storage: S3 client, safefetch, imaging) is
+        # optional and deletable: it imports no app and none of the data,
+        # auth or secrets packages; cmd reveals credentials and passes strings.
+        storage:
+          files:
+            - "**/packages/storage/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps
+              desc: packages/storage is self-contained; apps/web/internal/server adapts it to the services' ports
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: packages/storage is self-contained
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: packages/storage is self-contained
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets
+              desc: packages/storage takes plain strings revealed in apps/*/cmd
+        # Credentials travel as secrets.Secret (prints "[redacted]"), which has
+        # no method returning the value; reveal.Value is the only way to read
+        # it (package secrets/internal/access keeps it that way). Only the cmd
+        # packages, where clients are built, and packages/secrets itself may
+        # import reveal. Validation uses Len/IsZero/Equal.
+        secrets-reveal:
+          files:
+            - $all
+            - "!**/apps/*/cmd/**"
+            - "!**/packages/secrets/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets/reveal
+              desc: secrets are revealed only where a client is built (apps/*/cmd)
+        # apps/admin is a separate, optional, higher-privilege app. Neither app
+        # imports the other, and only apps/admin reaches adminrepo.
+        # See AGENTS.md "Admin app".
+        web-isolation:
+          files:
+            - "**/apps/web/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin
+              desc: apps/web never imports the admin app
+            - pkg: github.com/jayleaton/myPortfolio/packages/database/adminrepo
+              desc: higher-privilege admin data access (audit log, cross-user stats) is for apps/admin only
+        database-isolation:
+          files:
+            - "**/packages/database/**"
+            - "!**/packages/database/adminrepo/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/packages/database/adminrepo
+              desc: the app's repositories never use the admin data layer
+        admin-isolation:
+          files:
+            - "**/apps/admin/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/web
+              desc: apps/admin copies the web app's patterns, never its code (it must stay deletable)
+        # The backup job (apps/backup + packages/backup) stays deletable: it
+        # imports no app and no app imports it; it reads Postgres only
+        # through pg_dump/pg_restore, never the repositories.
+        backup-isolation:
+          files:
+            - "**/apps/backup/**"
+            - "**/packages/backup/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/web
+              desc: the backup job never imports an app
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin
+              desc: the backup job never imports an app
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: backups go through pg_dump/pg_restore, not the repositories
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: the backup job has no users
+        apps-skip-backup:
+          files:
+            - "**/apps/web/**"
+            - "**/apps/admin/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/backup
+              desc: apps never import the backup job (delete apps/backup and packages/backup to drop it)
+            - pkg: github.com/jayleaton/myPortfolio/packages/backup
+              desc: apps never import the backup job (delete apps/backup and packages/backup to drop it)
+        admin-transports:
+          files:
+            - "**/apps/admin/internal/api/**"
+            - "**/apps/admin/ui/**"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: admin transports call services; only packages/database talks to Postgres
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: admin transports call services (services.AuditEntry etc.), never adminrepo or sqlc
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: admin transports use their own ports; the adapters over packages/auth live in apps/admin/internal/server
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets
+              desc: secrets never reach templates, SSE or JSON; cmd/admin reveals them where clients are built
+        # packages/uikit is the component set both UIs share: rendering only.
+        # It takes translated strings and plain values, so either app (or
+        # both) can be deleted and it never reaches data, auth or secrets.
+        uikit:
+          files:
+            - "**/packages/uikit/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps
+              desc: packages/uikit is shared by both apps; pass it translated strings and values, never import an app
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: packages/uikit renders values; data comes from the app's services
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: packages/uikit renders values; auth stays behind the app's ports
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets
+              desc: secrets never reach templates
+            - pkg: github.com/jackc/pgx
+              desc: packages/uikit never talks to Postgres
+            - pkg: github.com/starfederation/datastar-go
+              desc: packages/uikit renders HTML; SSE belongs to the app UIs
+        # Route access sits between the services and the transports: policies
+        # see the caller and the request, never data, auth or a transport.
+        # What a policy needs (roles, tenant) is loaded by the Resolver in
+        # apps/*/internal/server, behind a port.
+        access:
+          files:
+            - "**/apps/web/internal/access/**"
+            - "**/apps/admin/internal/access/**"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: policies decide on the caller; the Resolver in apps/*/internal/server loads what they need
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: policies decide on the caller; the Resolver in apps/*/internal/server loads what they need
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: the Resolver in apps/*/internal/server adapts auth to access.Caller
+            - pkg: github.com/jayleaton/myPortfolio/packages/secrets
+              desc: route access never sees secrets
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api$
+              desc: both transports import access, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/
+              desc: both transports import access, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/ui
+              desc: both transports import access, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api$
+              desc: both transports import access, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/
+              desc: both transports import access, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/ui
+              desc: both transports import access, never the other way round
+        # UI -> API -> services -> repositories: the UI reaches data only
+        # through its app's API client (apiclient, in-process), so every read
+        # and write takes the API's access gate and validation. It never
+        # imports the services, validators, access internals or the API's
+        # handlers, and never renders an API path (check-ui-api-paths.sh).
+        # The preview command (ui/cmd) is wiring, like cmd/server.
+        ui-not-api:
+          files:
+            - "**/apps/web/ui/**"
+            - "!**/apps/web/ui/cmd/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api$
+              desc: "the UI calls the API through apps/web/internal/apiclient (in-process), never its handlers; browsers never see the JSON API"
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/
+              desc: "the UI calls the API through apps/web/internal/apiclient (in-process), never its handlers; browsers never see the JSON API"
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/services
+              desc: "the UI reaches data only through the API: use apiclient.Client (UI -> API -> services)"
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/validate
+              desc: "inputs are apiclient types and the API validates them; the UI never validates inline"
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/access
+              desc: "the UI declares access with apiclient.Public / apiclient.SignedIn; the API's gate enforces it"
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: "sign-in flows are API endpoints too: call apiclient.Client (SignIn, SignUp, SignOut...) and set the cookies it returns with setCookies"
+        # The UI's API client is a contract only: the interface, aliases and
+        # errors. It has no HTTP implementation (the in-process one is
+        # api.Client) and no base URL, so the UI cannot reach the API over the
+        # network.
+        apiclient:
+          files:
+            - "**/apps/web/internal/apiclient/**"
+            - "**/apps/admin/internal/apiclient/**"
+          deny:
+            - pkg: net/http
+              desc: "the UI's API client is in-process only (api.Client); there is no HTTP client or API base URL for the UI"
+            - pkg: github.com/jackc/pgx
+              desc: apiclient is the API's contract; data comes through the API
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: apiclient is the API's contract; data comes through the API
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: apiclient is the API's contract; auth stays behind the server's adapters
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api$
+              desc: api implements apiclient, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/
+              desc: api implements apiclient, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api$
+              desc: api implements apiclient, never the other way round
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/
+              desc: api implements apiclient, never the other way round
+        # The servers wire the API to its ports; they never adapt anything
+        # for the UI, so the UI has no way to data or auth but the API.
+        server-not-ui:
+          files:
+            - "**/apps/web/internal/server/**"
+            - "**/apps/admin/internal/server/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/ui
+              desc: "server adapts packages to the API's ports; the UI takes only apiclient.Client (wired in cmd)"
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/ui
+              desc: "server adapts packages to the API's ports; the UI takes only apiclient.Client (wired in cmd)"
+        admin-ui-not-api:
+          files:
+            - "**/apps/admin/ui/**"
+            - "!**/apps/admin/ui/cmd/**"
+          deny:
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api$
+              desc: "the admin UI calls the API through apps/admin/internal/apiclient (in-process), never its handlers; browsers never see the JSON API"
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/
+              desc: "the admin UI calls the API through apps/admin/internal/apiclient (in-process), never its handlers; browsers never see the JSON API"
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/services
+              desc: "the admin UI reaches data only through the API: use apiclient.Client (UI -> API -> services)"
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/validate
+              desc: "inputs are apiclient types and the API validates them; the UI never validates inline"
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/access
+              desc: "the admin UI declares access with apiclient.Public / apiclient.SignedIn; the API's gate enforces it"
+        admin-services:
+          files:
+            - "**/apps/admin/internal/services/**"
+          deny:
+            - pkg: net/http
+              desc: services are transport-agnostic; return *services.Error and let the transport map it
+            - pkg: github.com/a-h/templ
+              desc: rendering belongs to apps/admin/ui
+            - pkg: github.com/starfederation/datastar-go
+              desc: SSE belongs to apps/admin/ui
+            - pkg: github.com/jackc/pgx
+              desc: services use repositories from packages/database/adminrepo
+            - pkg: github.com/jayleaton/myPortfolio/packages/database/adminrepo/adminsql
+              desc: services use repositories, not sqlc output
+            - pkg: github.com/jayleaton/myPortfolio/packages/database/adminrepo/appsql
+              desc: services use repositories, not sqlc output
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: services reach auth through ports; adapters live in apps/admin/internal/server
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api$
+              desc: services never import a transport
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/
+              desc: services never import a transport
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/ui
+              desc: services never import a transport
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/access
+              desc: route access is the transports' coarse gate; services get a services.Actor and decide record-level authorization themselves
+        # Test boundaries: tests exist only for the business logic (services,
+        # with mocked ports), route handlers (mocked service) and packages/auth.
+        # scripts/check-test-boundaries.sh rejects tests anywhere else. See
+        # AGENTS.md "Test boundaries".
+        service-tests:
+          files:
+            - "**/apps/web/internal/services/*_test.go"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: service tests use the generated port mocks in services/mocks only
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: service tests use the generated port mocks in services/mocks only (services re-export the model types)
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: service tests use the generated port mocks in services/mocks only
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api$
+              desc: service tests use the generated port mocks in services/mocks only
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/
+              desc: service tests use the generated port mocks in services/mocks only
+        handler-tests:
+          files: # "/**/" needs a subdirectory, so list the package dir too
+            - "**/apps/web/internal/api/*_test.go"
+            - "**/apps/web/internal/api/**/*_test.go"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: handler tests mock the service and the session, never the database
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: handler tests mock the service and the session, never the database
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/services/mocks
+              desc: those are repository/credential mocks; handler tests mock the SERVICE, never the repos underneath it
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: handler tests mock the session; real auth is tested in packages/auth
+        admin-service-tests:
+          files:
+            - "**/apps/admin/internal/services/*_test.go"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: service tests use the generated port mocks in services/mocks only
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: service tests use the generated port mocks in services/mocks only (services re-export the model types)
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: service tests use the generated port mocks in services/mocks only
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api$
+              desc: service tests use the generated port mocks in services/mocks only
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/
+              desc: service tests use the generated port mocks in services/mocks only
+        admin-handler-tests:
+          files: # "/**/" needs a subdirectory, so list the package dir too
+            - "**/apps/admin/internal/api/*_test.go"
+            - "**/apps/admin/internal/api/**/*_test.go"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: handler tests mock the service and the session, never the database
+            - pkg: github.com/jayleaton/myPortfolio/packages/database
+              desc: handler tests mock the service and the session, never the database
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/services/mocks
+              desc: those are port mocks; handler tests mock the SERVICE, never what is underneath it
+            - pkg: github.com/jayleaton/myPortfolio/packages/auth
+              desc: handler tests mock the session; real auth is tested in packages/auth
+        # Local verification's rules stay pure: git, gh and HTTP run in
+        # scripts/cilocal, which passes their results in.
+        cilocal-verify:
+          files:
+            - "**/scripts/cilocal/verify/**"
+          deny:
+            - pkg: os/exec
+              desc: scripts/cilocal/verify is pure; run commands in scripts/cilocal and pass the results in
+            - pkg: net/http
+              desc: scripts/cilocal/verify is pure; call GitHub in scripts/cilocal and pass the results in
+        no-test-helpers:
+          files:
+            - $all
+            - "!$test"
+            - "!**/mocks/**"
+            - "!**/apitest/**"
+          deny:
+            - pkg: go.uber.org/mock
+              desc: mocks are for tests; production code never imports them
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/apitest
+              desc: test helpers are for tests; production code never imports them
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/services/mocks
+              desc: mocks are for tests; production code never imports them
+            - pkg: github.com/jayleaton/myPortfolio/apps/web/internal/api/mocks
+              desc: mocks are for tests; production code never imports them
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/apitest
+              desc: test helpers are for tests; production code never imports them
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/services/mocks
+              desc: mocks are for tests; production code never imports them
+            - pkg: github.com/jayleaton/myPortfolio/apps/admin/internal/api/mocks
+              desc: mocks are for tests; production code never imports them
+  exclusions:
+    generated: lax
+    presets:
+      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters: [noctx]
+      - path: (apps/admin|packages/auth)/
+        linters: [forbidigo]
+        text: is for apps/admin only
+      - path-except: _test\.go
+        linters: [forbidigo]
+        text: tests never sleep
+      - path-except: apps/(web|admin)/ui/
+        linters: [forbidigo]
+        text: the browser never talks to the JSON API
+      - path-except: apps/(web|admin)/ui/
+        linters: [forbidigo]
+        text: it never makes HTTP requests
+      - path: apps/(web|admin)/ui/cmd/
+        linters: [forbidigo]
+        text: it never makes HTTP requests
+      - path: (apps/(web|admin)/internal/server|packages/auth)/
+        linters: [forbidigo]
+        text: the caller comes from the route's access policy
+      - path: apps/(web|admin)/(internal/api|ui)/route\.go
+        linters: [forbidigo]
+        text: only the central route handler admits a request
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/jayleaton/myPortfolio

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <title>Build Things</title>
+ <entry>
+  <id>yt:video:WCrknrNsmjQ</id>
+  <yt:videoId>WCrknrNsmjQ</yt:videoId>
+  <title>This Is Massive For AI Builders (REAL Jarvis)</title>
+ </entry>
+ <entry>
+  <id>yt:video:Td33FCCShwg</id>
+  <yt:videoId>Td33FCCShwg</yt:videoId>
+  <title>The Agent Portability Problem &amp; How I Fixed It</title>
+ </entry>
+ <entry>
+  <yt:videoId>not-an-id</yt:videoId>
+  <title>Dropped: malformed id</title>
+ </entry>
+</feed>

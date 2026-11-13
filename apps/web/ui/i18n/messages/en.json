@@ -1,0 +1,267 @@
+{
+  "common": {
+    "language": "Language",
+    "english": "English",
+    "japanese": "Japanese",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "save": "Save",
+    "name": "Full name",
+    "email": "Email",
+    "password": "Password",
+    "yes": "Yes",
+    "no": "No",
+    "metaDescription": "A Go, templ, Datastar, Tailwind and PostgreSQL app."
+  },
+  "components": {
+    "languageSelector": {
+      "language": "Language"
+    },
+    "authStatus": {
+      "authenticationStatus": "Authentication Status",
+      "loggedIn": "You are signed in",
+      "loggedOut": "You are not signed in",
+      "login": "Sign In",
+      "logout": "Sign Out",
+      "signup": "Sign Up",
+      "verified": "Verified"
+    },
+    "themeToggle": {
+      "toggle": "Toggle theme",
+      "toLight": "Switch to light mode",
+      "toDark": "Switch to dark mode"
+    },
+    "nav": {
+      "label": "Main",
+      "dashboard": "Dashboard",
+      "account": "Account",
+      "menu": "Menu",
+      "skipToContent": "Skip to content"
+    },
+    "toast": {
+      "close": "Dismiss"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Welcome to your dashboard. Manage your account and explore features.",
+      "account": "Account",
+      "memberSince": "Member since",
+      "subscriptionActive": "Active subscription",
+      "quickActions": {
+        "title": "Quick Actions",
+        "settings": "Settings",
+        "profile": "Profile"
+      },
+      "sections": {
+        "analytics": {
+          "title": "Analytics",
+          "description": "View your usage statistics and insights."
+        },
+        "activity": {
+          "title": "Recent Activity",
+          "description": "Track your recent actions and updates."
+        },
+        "settings": {
+          "title": "Settings",
+          "description": "Manage your preferences and configuration."
+        }
+      },
+      "live": {
+        "title": "Live session",
+        "description": "Streamed from the server over SSE.",
+        "serverTime": "Server time",
+        "sessionExpires": "Session expires",
+        "connected": "Connected",
+        "updatedElsewhere": "Your account was updated in another tab."
+      }
+    },
+    "login": {
+      "title": "Sign in to your account",
+      "description": "Welcome back. Enter your details to continue.",
+      "loginButton": "Sign in",
+      "forgotPassword": "Forgot Password?",
+      "dontHaveAccount": "Don't have an account?",
+      "signUpInstead": "Sign up instead",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Enter your password",
+      "social": {
+        "or": "or",
+        "google": "Continue with Google",
+        "apple": "Continue with Apple",
+        "cancelled": "Sign-in was cancelled.",
+        "accountNotLinked": "An account with this email already exists. Sign in with your password, verify your email, then try again.",
+        "emailNotVerified": "Your email address is not verified with that provider.",
+        "signupDisabled": "Sign-up is closed. Ask for an invite.",
+        "twoFactorRequired": "This account uses two-factor authentication. Sign in with your password.",
+        "failed": "Sign-in did not work. Please try again."
+      }
+    },
+    "signup": {
+      "title": "Create your account",
+      "description": "Get started with your email address. It only takes a minute.",
+      "signupButton": "Sign up",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInInstead": "Sign in instead",
+      "namePlaceholder": "Enter your full name",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Create a password"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "description": "Enter your email address and we'll send you a link to reset your password.",
+      "sendResetLink": "Send Reset Link",
+      "emailSent": "Email sent! Check your inbox for instructions.",
+      "backToLogin": "Back to login",
+      "checkEmail": "Check your email for the reset link. If you don't see it, check your spam folder.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "Enter your email address"
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "description": "Enter your new password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "resetButton": "Reset Password",
+      "passwordResetSuccess": "Password reset successfully!",
+      "invalidResetLink": "Invalid reset link. Please request a new password reset.",
+      "requestNewResetLink": "Request new reset link",
+      "passwordMismatch": "Passwords don't match",
+      "passwordTooShort": "Password must be at least 8 characters long",
+      "resettingPassword": "Resetting password...",
+      "backToLogin": "Back to sign in",
+      "newPasswordPlaceholder": "Enter your new password",
+      "confirmPasswordPlaceholder": "Confirm your new password",
+      "passwordRequirement": "Password must be at least 8 characters long",
+      "signInWithNewPassword": "Sign in with new password",
+      "passwordUpdated": "Your password has been updated. You can now sign in with your new password."
+    },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "description": "We sent you an email with a verification link. Please check your inbox and click the link to verify your email address.",
+      "checkEmail": "Check your email",
+      "emailVerified": "Email verified successfully!",
+      "invalidToken": "Invalid or expired token",
+      "resendEmail": "Resend email",
+      "checkEmailTitle": "Check your email",
+      "emailSentTo": "We've sent a verification link to",
+      "clickLinkInstructions": "Click the link in the email to verify your account. If you don't see the email, check your spam folder.",
+      "resendVerificationEmail": "Resend verification email",
+      "verificationEmailSent": "Verification email sent! Please check your inbox.",
+      "backToLogin": "Back to sign in",
+      "sending": "Sending...",
+      "resendIn": "Resend in",
+      "verifyingEmail": "Verifying your email...",
+      "pleaseWait": "Please wait while we verify your email address.",
+      "verificationFailed": "Verification failed",
+      "emailVerificationCompletedButLoginFailed": "Email verification completed, but automatic login failed. Please try signing in manually.",
+      "unexpectedErrorDuringVerification": "An unexpected error occurred during verification",
+      "emailVerifiedSuccessfully": "Email verified successfully!",
+      "accountVerifiedRedirect": "Your account has been verified. You're now logged in and will be redirected shortly.",
+      "continueToDashboard": "Continue to dashboard",
+      "invalidUser": "This link belongs to a different account. Sign out, then open the link again.",
+      "confirmDescription": "Confirm that this is your email address to finish verifying it.",
+      "confirmButton": "Verify email"
+    },
+    "account": {
+      "title": "Account",
+      "subtitle": "Manage your profile, sign-in details and devices.",
+      "emailChanged": "Your email address is now {email}.",
+      "profile": {
+        "title": "Profile",
+        "description": "Your name and picture as others see them.",
+        "image": "Image URL",
+        "imageHint": "Optional. A link to an http(s) image; leave it empty to remove the picture.",
+        "saving": "Saving...",
+        "saved": "Profile saved."
+      },
+      "email": {
+        "title": "Email",
+        "description": "We send a confirmation link to the new address. Your email changes once you open it.",
+        "current": "Current email",
+        "new": "New email",
+        "newPlaceholder": "you@example.com",
+        "submit": "Send confirmation link",
+        "sending": "Sending...",
+        "checkInbox": "Check your new inbox",
+        "sentTo": "We sent a confirmation link to {email}. Your email stays the same until you open it.",
+        "useDifferent": "Use a different address"
+      },
+      "password": {
+        "title": "Password",
+        "description": "Use 8 to 128 characters.",
+        "current": "Current password",
+        "new": "New password",
+        "confirm": "Confirm new password",
+        "revokeOthers": "Sign out of all other devices",
+        "submit": "Change password",
+        "changing": "Changing...",
+        "changed": "Password changed.",
+        "changedRevoked": "Password changed. Other devices were signed out.",
+        "mismatch": "Passwords don't match"
+      },
+      "sessions": {
+        "title": "Devices",
+        "description": "Where you're signed in right now.",
+        "thisDevice": "This device",
+        "unknownDevice": "Unknown device",
+        "device": "{browser} on {os}",
+        "signedIn": "Signed in {date}",
+        "expires": "Expires {date}",
+        "ip": "IP {ip}",
+        "revoke": "Sign out",
+        "revokeOthers": "Sign out of all other devices",
+        "working": "Signing out...",
+        "revoked": "Device signed out.",
+        "othersRevoked": "All other devices were signed out.",
+        "none": "No other devices are signed in."
+      },
+      "danger": {
+        "title": "Delete account",
+        "description": "Permanently delete your account and all of its data. This cannot be undone.",
+        "summary": "Active sessions: {count}",
+        "button": "Delete account",
+        "confirm": "Are you sure? This permanently deletes your account.",
+        "confirmButton": "Yes, delete my account",
+        "deleting": "Deleting..."
+      },
+      "errors": {
+        "wrongPassword": "Current password is incorrect",
+        "passwordPolicy": "Password must be 8 to 128 characters",
+        "sameEmail": "The new email must be different from your current email",
+        "samePassword": "The new password must be different from your current password",
+        "sessionNotFound": "That device is already signed out",
+        "currentSession": "Use the sign-out button to end this device's session",
+        "name": "Name must be 1 to 255 characters",
+        "image": "Image must be an http(s) URL",
+        "sessionNotFresh": "For your security, sign in again to change your email",
+        "noPassword": "This account has no password to change"
+      }
+    }
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "accessDenied": "You do not have access to this page",
+    "tryAgain": "Please try again",
+    "invalidCredentials": "Invalid credentials",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "emailInvalid": "Please enter a valid email address",
+    "emailTaken": "Email already in use",
+    "invalidInput": "Please check the form and try again",
+    "tooManyRequests": "Too many attempts. Please try again later.",
+    "banned": "Your account has been suspended. Contact support if you think this is a mistake.",
+    "passwordTooLong": "Password must be at most 128 characters",
+    "forbidden": "You can only manage your own account",
+    "notFound": "That no longer exists. Reload the page and try again.",
+    "conflict": "That conflicts with existing data. Reload the page and try again."
+  }
+}

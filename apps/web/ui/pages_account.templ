@@ -1,0 +1,251 @@
+package ui
+
+import (
+	"strconv"
+
+	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/i18n"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/routes"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/view"
+	"github.com/jayleaton/myPortfolio/packages/uikit"
+)
+
+// Patch targets of the Account page.
+const (
+	profileCardID    = "profile-card"
+	profileStatusID  = "profile-status"
+	emailCardID      = "email-card"
+	emailStatusID    = "email-status"
+	passwordCardID   = "password-card"
+	passwordStatusID = "password-status"
+	sessionsCardID   = "sessions-card"
+	sessionsStatusID = "sessions-status"
+	deleteErrorID    = "delete-error"
+)
+
+// AccountData is everything the Account page renders.
+type AccountData struct {
+	User         User
+	Sessions     []apiclient.Session
+	Summary      apiclient.UserDataSummary
+	EmailChanged bool
+	// LoadError is shown when sessions or the data summary failed to load.
+	LoadError string
+}
+
+// Status is the outcome line of one account form; both fields are translated.
+type Status struct {
+	Message string
+	Error   string
+}
+
+templ AccountPage(data AccountData) {
+	@view.SectionLayout(i18n.Translate(ctx, "pages.account.title"), view.SectionAccount) {
+		<div class={ uikit.ContainerClass, "py-8 sm:py-12" }>
+			<div class="mx-auto max-w-3xl">
+				@uikit.PageHeader(i18n.Translate(ctx, "pages.account.title"), i18n.Translate(ctx, "pages.account.subtitle"))
+				if data.EmailChanged || data.LoadError != "" {
+					<div class="mb-6 space-y-3">
+						if data.EmailChanged {
+							@uikit.Alert("account-notice", uikit.Success, i18n.Tf(ctx, "pages.account.emailChanged", "email", data.User.Email))
+						}
+						@uikit.Alert("account-error", uikit.Error, data.LoadError)
+					</div>
+				}
+				<div class="space-y-6">
+					@ProfileCard(data.User, Status{})
+					@EmailCard(data.User.Email, "", Status{})
+					@PasswordCard(data.User.Email, Status{})
+					@SessionsCard(data.Sessions, Status{})
+					@DangerCard(data.Summary)
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// accountCard is one settings card: the title row, then children. Forms put
+// their fields in a padded body and their button in a view.CardFooter.
+templ accountCard(id, titleKey, descriptionKey string) {
+	@uikit.Card("scroll-mt-24", templ.Attributes{"id": id}) {
+		<div class="px-5 pt-5 sm:px-6 sm:pt-6">
+			@uikit.CardHeader(i18n.Translate(ctx, titleKey), i18n.Translate(ctx, descriptionKey))
+		</div>
+		{ children... }
+	}
+}
+
+// StatusAlert renders a form's outcome into its patch slot.
+templ StatusAlert(id string, status Status) {
+	if status.Error != "" {
+		@uikit.Alert(id, uikit.Error, status.Error)
+	} else {
+		@uikit.Alert(id, uikit.Success, status.Message)
+	}
+}
+
+// cardBody is the padded field area of an account card.
+const cardBody = "space-y-5 px-5 py-5 sm:px-6"
+
+templ ProfileCard(user User, status Status) {
+	@accountCard(profileCardID, "pages.account.profile.title", "pages.account.profile.description") {
+		<form method="post" action={ templ.SafeURL(routes.AccountProfile) } data-on:submit={ view.PostForm(routes.AccountProfile) } data-indicator:_saving-profile>
+			<div class={ cardBody }>
+				@StatusAlert(profileStatusID, status)
+				<div class="flex items-end gap-4">
+					@view.Avatar(user.Name, deref(user.Image), "size-14 text-lg")
+					<div class="min-w-0 flex-1">
+						@uikit.Input(uikit.Field{ID: "name", Label: i18n.Translate(ctx, "common.name"), Autocomplete: "name", Value: user.Name})
+					</div>
+				</div>
+				@uikit.Input(uikit.Field{ID: "image", Type: "url", Label: i18n.Translate(ctx, "pages.account.profile.image"), Placeholder: "https://", Value: deref(user.Image), Optional: true, Hint: i18n.Translate(ctx, "pages.account.profile.imageHint")})
+			</div>
+			@view.CardFooter() {
+				@uikit.SubmitButton(uikit.Submit{Label: i18n.Translate(ctx, "common.save"), Loading: i18n.Translate(ctx, "pages.account.profile.saving"), Signal: "_savingProfile"})
+			}
+		</form>
+	}
+}
+
+// EmailCard shows the request form, or the "check your new inbox" state once
+// a link went to sentTo.
+templ EmailCard(current, sentTo string, status Status) {
+	@accountCard(emailCardID, "pages.account.email.title", "pages.account.email.description") {
+		<div class="px-5 pt-5 sm:px-6">
+			<dl class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-control border border-border bg-muted px-4 py-3 text-sm">
+				<dt class="text-muted-foreground">{ i18n.Translate(ctx, "pages.account.email.current") }</dt>
+				<dd class="min-w-0 break-all font-medium" data-testid="current-email">{ current }</dd>
+			</dl>
+		</div>
+		if sentTo != "" {
+			<div class={ cardBody }>
+				@uikit.Callout(uikit.Info, i18n.Translate(ctx, "pages.account.email.checkInbox"), i18n.Tf(ctx, "pages.account.email.sentTo", "email", sentTo))
+				<p class="text-sm">
+					<a href={ templ.SafeURL(config.AppRoutes.Account) } class={ uikit.LinkClass }>{ i18n.Translate(ctx, "pages.account.email.useDifferent") }</a>
+				</p>
+			</div>
+		} else {
+			<form method="post" action={ templ.SafeURL(routes.AccountEmail) } data-on:submit={ view.PostForm(routes.AccountEmail) } data-indicator:_sending-email>
+				<div class={ cardBody }>
+					@StatusAlert(emailStatusID, status)
+					@uikit.Input(uikit.Field{ID: "newEmail", Type: "email", Label: i18n.Translate(ctx, "pages.account.email.new"), Placeholder: i18n.Translate(ctx, "pages.account.email.newPlaceholder"), Autocomplete: "email"})
+				</div>
+				@view.CardFooter() {
+					@uikit.SubmitButton(uikit.Submit{Label: i18n.Translate(ctx, "pages.account.email.submit"), Loading: i18n.Translate(ctx, "pages.account.email.sending"), Signal: "_sendingEmail"})
+				}
+			</form>
+		}
+	}
+}
+
+// PasswordCard carries the email as a hidden username for password managers.
+templ PasswordCard(email string, status Status) {
+	@accountCard(passwordCardID, "pages.account.password.title", "pages.account.password.description") {
+		<form method="post" action={ templ.SafeURL(routes.AccountPassword) } data-on:submit={ view.PostForm(routes.AccountPassword) } data-indicator:_changing-password>
+			<div class={ cardBody }>
+				@StatusAlert(passwordStatusID, status)
+				<input type="email" name="username" autocomplete="username" value={ email } readonly hidden/>
+				@uikit.Input(uikit.Field{ID: "currentPassword", Type: "password", Label: i18n.Translate(ctx, "pages.account.password.current"), Autocomplete: "current-password"})
+				<div class="grid gap-5 sm:grid-cols-2">
+					@uikit.Input(uikit.Field{ID: "newPassword", Type: "password", Label: i18n.Translate(ctx, "pages.account.password.new"), Autocomplete: "new-password", MinLength: apiclient.MinPasswordLength, MaxLength: apiclient.MaxPasswordLength})
+					@uikit.Input(uikit.Field{ID: "confirmPassword", Type: "password", Label: i18n.Translate(ctx, "pages.account.password.confirm"), Autocomplete: "new-password", MinLength: apiclient.MinPasswordLength, MaxLength: apiclient.MaxPasswordLength})
+				</div>
+				@uikit.CheckboxField(uikit.Checkbox{ID: "revokeOtherSessions", Name: "revokeOtherSessions", Value: "on", Label: i18n.Translate(ctx, "pages.account.password.revokeOthers")})
+			</div>
+			@view.CardFooter() {
+				@uikit.SubmitButton(uikit.Submit{Label: i18n.Translate(ctx, "pages.account.password.submit"), Loading: i18n.Translate(ctx, "pages.account.password.changing"), Signal: "_changingPassword"})
+			}
+		</form>
+	}
+}
+
+// SessionsCard lists the user's sessions; every action re-renders it.
+templ SessionsCard(sessions []apiclient.Session, status Status) {
+	@accountCard(sessionsCardID, "pages.account.sessions.title", "pages.account.sessions.description") {
+		<div class="px-5 pt-4 sm:px-6">
+			@StatusAlert(sessionsStatusID, status)
+		</div>
+		<ul class="divide-y divide-border px-5 sm:px-6" data-testid="sessions">
+			for _, sess := range sessions {
+				<li class="flex items-center gap-4 py-4" data-session-id={ sess.ID }>
+					@deviceIcon(mobileDevice(sess.UserAgent))
+					<div class="min-w-0 flex-1 text-sm">
+						<p class="flex flex-wrap items-center gap-2 font-medium">
+							<span class="min-w-0 truncate">{ deviceLabel(ctx, sess.UserAgent) }</span>
+							if sess.Current {
+								@uikit.Badge(uikit.Success, i18n.Translate(ctx, "pages.account.sessions.thisDevice"), true)
+							}
+						</p>
+						<p class="mt-0.5 text-xs text-muted-foreground">
+							{ i18n.Tf(ctx, "pages.account.sessions.signedIn", "date", i18n.From(ctx).DateTime(sess.CreatedAt.UTC())) }
+							if sess.IPAddress != nil && *sess.IPAddress != "" {
+								<span aria-hidden="true">·</span> { i18n.Tf(ctx, "pages.account.sessions.ip", "ip", *sess.IPAddress) }
+							}
+						</p>
+						<p class="text-xs text-muted-foreground">{ i18n.Tf(ctx, "pages.account.sessions.expires", "date", i18n.From(ctx).DateTime(sess.ExpiresAt.UTC())) }</p>
+					</div>
+					if !sess.Current {
+						<form class="shrink-0" method="post" action={ templ.SafeURL(routes.AccountRevokeSession) } data-on:submit={ view.PostForm(routes.AccountRevokeSession) } data-indicator:_revoking>
+							<input type="hidden" name="sessionId" value={ sess.ID }/>
+							@uikit.Button(uikit.ButtonProps{Variant: uikit.Secondary, Size: uikit.Small, Type: "submit", Attrs: templ.Attributes{"data-attr:disabled": "$_revoking"}}) {
+								{ i18n.Translate(ctx, "pages.account.sessions.revoke") }
+							}
+						</form>
+					}
+				</li>
+			}
+		</ul>
+		if hasOtherSessions(sessions) {
+			<form method="post" action={ templ.SafeURL(routes.AccountRevokeOthers) } data-on:submit={ view.PostForm(routes.AccountRevokeOthers) } data-indicator:_revoking-others>
+				@view.CardFooter() {
+					@uikit.SubmitButton(uikit.Submit{Label: i18n.Translate(ctx, "pages.account.sessions.revokeOthers"), Loading: i18n.Translate(ctx, "pages.account.sessions.working"), Signal: "_revokingOthers", ButtonProps: uikit.ButtonProps{Variant: uikit.DangerOutline}})
+				}
+			</form>
+		} else {
+			<p class="border-t border-border px-5 py-4 text-sm text-muted-foreground sm:px-6">{ i18n.Translate(ctx, "pages.account.sessions.none") }</p>
+		}
+	}
+}
+
+// deviceIcon is a phone or a laptop.
+templ deviceIcon(mobile bool) {
+	<span class="grid size-10 shrink-0 place-items-center rounded-control bg-muted text-muted-foreground" aria-hidden="true">
+		<svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+			if mobile {
+				<rect x="7" y="2" width="10" height="20" rx="2"></rect>
+				<path d="M11 18h2"></path>
+			} else {
+				<rect x="3" y="4" width="18" height="12" rx="2"></rect>
+				<path d="M2 20h20"></path>
+			}
+		</svg>
+	</span>
+}
+
+// DangerCard asks for confirmation in a local signal, then posts. Without
+// JS the confirm form stays hidden, so nothing deletes in one click.
+templ DangerCard(sum apiclient.UserDataSummary) {
+	<section class="rounded-card border border-danger-border bg-surface shadow-card" data-signals="{_confirmDelete: false}">
+		<div class="flex flex-col items-start gap-4 p-5 sm:p-6 [&>#delete-error]:w-full">
+			<div>
+				<h2 class="text-base font-semibold text-danger-soft-foreground">{ i18n.Translate(ctx, "pages.account.danger.title") }</h2>
+				<p class="mt-1 text-sm text-muted-foreground">{ i18n.Translate(ctx, "pages.account.danger.description") }</p>
+				<p class="mt-2 text-sm text-muted-foreground" data-testid="data-summary">{ i18n.Tf(ctx, "pages.account.danger.summary", "count", strconv.FormatInt(sum.Sessions, 10)) }</p>
+			</div>
+			@uikit.Alert(deleteErrorID, uikit.Error, "")
+			@uikit.Button(uikit.ButtonProps{Variant: uikit.DangerOutline, Attrs: templ.Attributes{"data-show": "!$_confirmDelete", "data-on:click": "$_confirmDelete = true"}}) {
+				{ i18n.Translate(ctx, "pages.account.danger.button") }
+			}
+			<form class="hidden w-full space-y-4 rounded-control border border-danger-border bg-danger-soft p-4" data-class:hidden="!$_confirmDelete" method="post" action={ templ.SafeURL(routes.AccountDelete) } data-on:submit={ view.PostForm(routes.AccountDelete) } data-indicator:_deleting>
+				<p class="text-sm font-medium text-danger-soft-foreground">{ i18n.Translate(ctx, "pages.account.danger.confirm") }</p>
+				<div class="flex flex-col-reverse gap-2 sm:flex-row">
+					@uikit.Button(uikit.ButtonProps{Variant: uikit.Secondary, Attrs: templ.Attributes{"data-on:click": "$_confirmDelete = false"}}) {
+						{ i18n.Translate(ctx, "common.cancel") }
+					}
+					@uikit.SubmitButton(uikit.Submit{Label: i18n.Translate(ctx, "pages.account.danger.confirmButton"), Loading: i18n.Translate(ctx, "pages.account.danger.deleting"), Signal: "_deleting", ButtonProps: uikit.ButtonProps{Variant: uikit.Danger}})
+				</div>
+			</form>
+		</div>
+	</section>
+}

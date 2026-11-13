@@ -1,0 +1,267 @@
+{
+  "common": {
+    "language": "言語",
+    "english": "英語",
+    "japanese": "日本語",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "continue": "続行",
+    "cancel": "キャンセル",
+    "submit": "送信",
+    "back": "戻る",
+    "next": "次へ",
+    "save": "保存",
+    "name": "名前",
+    "email": "メール",
+    "password": "パスワード",
+    "yes": "はい",
+    "no": "いいえ",
+    "metaDescription": "Go、templ、Datastar、Tailwind、PostgreSQL で作られたアプリ。"
+  },
+  "components": {
+    "languageSelector": {
+      "language": "言語"
+    },
+    "authStatus": {
+      "authenticationStatus": "認証状態",
+      "loggedIn": "サインイン済み",
+      "loggedOut": "サインアウト済み",
+      "login": "サインイン",
+      "logout": "サインアウト",
+      "signup": "サインアップ",
+      "verified": "認証済み"
+    },
+    "themeToggle": {
+      "toggle": "テーマを切り替え",
+      "toLight": "ライトモードに切り替え",
+      "toDark": "ダークモードに切り替え"
+    },
+    "nav": {
+      "label": "メイン",
+      "dashboard": "ダッシュボード",
+      "account": "アカウント",
+      "menu": "メニュー",
+      "skipToContent": "本文へスキップ"
+    },
+    "toast": {
+      "close": "閉じる"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "ダッシュボード",
+      "subtitle": "ダッシュボードへようこそ。アカウントを管理し、機能を探索してください。",
+      "account": "アカウント",
+      "memberSince": "登録日",
+      "subscriptionActive": "有効なサブスクリプション",
+      "quickActions": {
+        "title": "クイックアクション",
+        "settings": "設定",
+        "profile": "プロフィール"
+      },
+      "sections": {
+        "analytics": {
+          "title": "分析",
+          "description": "使用統計と洞察を表示します。"
+        },
+        "activity": {
+          "title": "最近のアクティビティ",
+          "description": "最近のアクションと更新を追跡します。"
+        },
+        "settings": {
+          "title": "設定",
+          "description": "設定と構成を管理します。"
+        }
+      },
+      "live": {
+        "title": "ライブセッション",
+        "description": "サーバーから SSE で配信されています。",
+        "serverTime": "サーバー時刻",
+        "sessionExpires": "セッションの有効期限",
+        "connected": "接続済み",
+        "updatedElsewhere": "別のタブでアカウントが更新されました。"
+      }
+    },
+    "login": {
+      "title": "アカウントにサインイン",
+      "description": "おかえりなさい。続けるには、メールアドレスとパスワードを入力してください。",
+      "loginButton": "サインイン",
+      "forgotPassword": "パスワードをお忘れですか？",
+      "dontHaveAccount": "アカウントをお持ちでない方",
+      "signUpInstead": "サインアップ",
+      "emailPlaceholder": "メールアドレスを入力",
+      "passwordPlaceholder": "パスワードを入力",
+      "social": {
+        "or": "または",
+        "google": "Googleで続ける",
+        "apple": "Appleで続ける",
+        "cancelled": "サインインがキャンセルされました。",
+        "accountNotLinked": "このメールアドレスのアカウントは既に存在します。パスワードでサインインしてメールアドレスを確認してから、もう一度お試しください。",
+        "emailNotVerified": "このプロバイダーではメールアドレスが確認されていません。",
+        "signupDisabled": "新規登録は受け付けていません。招待をご依頼ください。",
+        "twoFactorRequired": "このアカウントは二要素認証を使用しています。パスワードでサインインしてください。",
+        "failed": "サインインできませんでした。もう一度お試しください。"
+      }
+    },
+    "signup": {
+      "title": "アカウントを作成",
+      "description": "メールアドレスですぐに始められます。登録は1分ほどで完了します。",
+      "signupButton": "サインアップ",
+      "alreadyHaveAccount": "既にアカウントをお持ちですか？",
+      "signInInstead": "サインイン",
+      "namePlaceholder": "名前を入力",
+      "emailPlaceholder": "メールアドレスを入力",
+      "passwordPlaceholder": "パスワードを作成"
+    },
+    "forgotPassword": {
+      "title": "パスワードをリセット",
+      "description": "メールアドレスを入力すると、パスワードリセット用のリンクをお送りします。",
+      "sendResetLink": "リセットリンクを送信",
+      "emailSent": "メールを送信しました！受信箱の指示をご確認ください。",
+      "backToLogin": "ログインに戻る",
+      "checkEmail": "リセットリンクのメールをご確認ください。見つからない場合は、迷惑メールフォルダもご確認ください。",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "メールアドレスを入力"
+    },
+    "resetPassword": {
+      "title": "パスワードリセット",
+      "description": "新しいパスワードを入力してください",
+      "newPassword": "新しいパスワード",
+      "confirmPassword": "パスワード確認",
+      "resetButton": "パスワードリセット",
+      "passwordResetSuccess": "パスワードが正常にリセットされました！",
+      "invalidResetLink": "無効なリセットリンクです。新しいパスワードリセットをリクエストしてください。",
+      "requestNewResetLink": "新しいリセットリンクをリクエスト",
+      "passwordMismatch": "パスワードが一致しません",
+      "passwordTooShort": "パスワードは8文字以上である必要があります",
+      "resettingPassword": "パスワードをリセット中...",
+      "backToLogin": "サインインに戻る",
+      "newPasswordPlaceholder": "新しいパスワードを入力",
+      "confirmPasswordPlaceholder": "パスワードを確認",
+      "passwordRequirement": "パスワードは8文字以上である必要があります",
+      "signInWithNewPassword": "新しいパスワードでサインイン",
+      "passwordUpdated": "パスワードが更新されました。新しいパスワードでサインインできます。"
+    },
+    "verifyEmail": {
+      "title": "メールを確認",
+      "description": "確認リンクが含まれたメールをお送りしました。受信箱をご確認の上、リンクをクリックしてメールアドレスを確認してください。",
+      "checkEmail": "メールを確認",
+      "emailVerified": "メールが正常に確認されました！",
+      "invalidToken": "無効または期限切れのトークンです",
+      "resendEmail": "メールを再送信",
+      "checkEmailTitle": "メールを確認",
+      "emailSentTo": "確認リンクを送信しました：",
+      "clickLinkInstructions": "メール内のリンクをクリックしてアカウントを確認してください。メールが見つからない場合は、迷惑メールフォルダもご確認ください。",
+      "resendVerificationEmail": "確認メールを再送信",
+      "verificationEmailSent": "確認メールを送信しました！受信箱をご確認ください。",
+      "backToLogin": "サインインに戻る",
+      "sending": "送信中...",
+      "resendIn": "再送信まで",
+      "verifyingEmail": "メールを確認中...",
+      "pleaseWait": "メールアドレスを確認中です。しばらくお待ちください。",
+      "verificationFailed": "確認に失敗しました",
+      "emailVerificationCompletedButLoginFailed": "メール確認は完了しましたが、自動ログインに失敗しました。手動でサインインしてください。",
+      "unexpectedErrorDuringVerification": "確認中に予期しないエラーが発生しました",
+      "emailVerifiedSuccessfully": "メールが正常に確認されました！",
+      "accountVerifiedRedirect": "アカウントが確認されました。ログイン済みです。まもなくリダイレクトします。",
+      "continueToDashboard": "ダッシュボードに続行",
+      "invalidUser": "このリンクは別のアカウント用です。サインアウトしてからもう一度リンクを開いてください。",
+      "confirmDescription": "このメールアドレスがあなたのものであることを確認して、認証を完了してください。",
+      "confirmButton": "メールアドレスを認証"
+    },
+    "account": {
+      "title": "アカウント",
+      "subtitle": "プロフィール、サインイン情報、デバイスを管理します。",
+      "emailChanged": "メールアドレスが {email} に変更されました。",
+      "profile": {
+        "title": "プロフィール",
+        "description": "表示される名前と画像です。",
+        "image": "画像URL",
+        "imageHint": "任意。http(s) の画像リンクです。空にすると画像を削除します。",
+        "saving": "保存中...",
+        "saved": "プロフィールを保存しました。"
+      },
+      "email": {
+        "title": "メールアドレス",
+        "description": "新しいアドレスに確認リンクを送ります。リンクを開くとメールアドレスが変わります。",
+        "current": "現在のメールアドレス",
+        "new": "新しいメールアドレス",
+        "newPlaceholder": "you@example.com",
+        "submit": "確認リンクを送信",
+        "sending": "送信中...",
+        "checkInbox": "新しい受信箱を確認してください",
+        "sentTo": "{email} に確認リンクを送りました。リンクを開くまでメールアドレスは変わりません。",
+        "useDifferent": "別のアドレスを使う"
+      },
+      "password": {
+        "title": "パスワード",
+        "description": "8〜128文字で設定してください。",
+        "current": "現在のパスワード",
+        "new": "新しいパスワード",
+        "confirm": "新しいパスワード（確認）",
+        "revokeOthers": "他のすべてのデバイスからサインアウトする",
+        "submit": "パスワードを変更",
+        "changing": "変更中...",
+        "changed": "パスワードを変更しました。",
+        "changedRevoked": "パスワードを変更しました。他のデバイスはサインアウトされました。",
+        "mismatch": "パスワードが一致しません"
+      },
+      "sessions": {
+        "title": "デバイス",
+        "description": "現在サインインしている場所です。",
+        "thisDevice": "このデバイス",
+        "unknownDevice": "不明なデバイス",
+        "device": "{os} の {browser}",
+        "signedIn": "{date} にサインイン",
+        "expires": "有効期限 {date}",
+        "ip": "IP {ip}",
+        "revoke": "サインアウト",
+        "revokeOthers": "他のすべてのデバイスからサインアウト",
+        "working": "サインアウト中...",
+        "revoked": "デバイスをサインアウトしました。",
+        "othersRevoked": "他のすべてのデバイスをサインアウトしました。",
+        "none": "他にサインインしているデバイスはありません。"
+      },
+      "danger": {
+        "title": "アカウントを削除",
+        "description": "アカウントとすべてのデータを完全に削除します。元に戻すことはできません。",
+        "summary": "有効なセッション: {count}",
+        "button": "アカウントを削除",
+        "confirm": "本当によろしいですか？アカウントは完全に削除されます。",
+        "confirmButton": "はい、削除します",
+        "deleting": "削除中..."
+      },
+      "errors": {
+        "wrongPassword": "現在のパスワードが正しくありません",
+        "passwordPolicy": "パスワードは8〜128文字で設定してください",
+        "sameEmail": "新しいメールアドレスは現在のものと異なる必要があります",
+        "samePassword": "新しいパスワードは現在のものと異なる必要があります",
+        "sessionNotFound": "そのデバイスは既にサインアウトしています",
+        "currentSession": "このデバイスのセッションはサインアウトボタンで終了してください",
+        "name": "名前は1〜255文字で入力してください",
+        "image": "画像は http(s) のURLで指定してください",
+        "sessionNotFresh": "安全のため、メールアドレスを変更するにはもう一度サインインしてください",
+        "noPassword": "このアカウントには変更できるパスワードがありません"
+      }
+    }
+  },
+  "errors": {
+    "somethingWentWrong": "問題が発生しました",
+    "accessDenied": "このページへのアクセス権がありません",
+    "tryAgain": "もう一度お試しください",
+    "invalidCredentials": "無効な認証情報",
+    "emailRequired": "メールアドレスが必要です",
+    "passwordRequired": "パスワードが必要です",
+    "passwordTooShort": "パスワードは8文字以上である必要があります",
+    "emailInvalid": "有効なメールアドレスを入力してください",
+    "emailTaken": "このメールアドレスは既に使用されています",
+    "invalidInput": "入力内容を確認して、もう一度お試しください",
+    "tooManyRequests": "試行回数が多すぎます。しばらくしてからもう一度お試しください。",
+    "banned": "このアカウントは利用停止されています。誤りだと思われる場合はサポートにお問い合わせください。",
+    "passwordTooLong": "パスワードは128文字以内である必要があります",
+    "forbidden": "自分のアカウントのみ管理できます",
+    "notFound": "対象が見つかりません。ページを再読み込みしてもう一度お試しください。",
+    "conflict": "既存のデータと競合しています。ページを再読み込みしてもう一度お試しください。"
+  }
+}

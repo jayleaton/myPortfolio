@@ -1,0 +1,63 @@
+package ui
+
+// The hero: name, headline, bio, calls to action, the terminal status block
+// and the architecture diagram (diagramSVG in portfolio_visuals.templ).
+
+import "github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+
+templ hero(page apiclient.PortfolioPage) {
+	{{ site := page.Portfolio.Site }}
+	<section class="pf-hero" data-section="hero" aria-labelledby="hero-title">
+		<div class="pf-wrap pf-hero-grid">
+			<div class="pf-hero-copy">
+				<p class="pf-kicker"><span class="pf-led"></span>{ site.Kicker }</p>
+				<h1 id="hero-title" class="pf-display">
+					<span class="pf-display-name">{ page.Portfolio.Name }</span>
+					<span class="pf-display-line">{ page.Portfolio.Headline }</span>
+				</h1>
+				<p class="pf-lede">{ page.Portfolio.Bio }</p>
+				<div class="pf-cta">
+					<a class="pf-button pf-button-primary" href="#work">Inspect the engine room <span aria-hidden="true">↓</span></a>
+					if xLink := socialFor(page.Portfolio.Socials, "X"); xLink.URL != "" {
+						<a class="pf-button" href={ templ.SafeURL(xLink.URL) } rel="me noopener" target="_blank">
+							Follow on X
+							<span class="pf-count-chip hidden" data-class:hidden="!$followersKnown" aria-hidden="true"><span data-count data-attr:data-target="$followers">{ groupDigits(page.Followers.Count) }</span></span>
+						</a>
+					}
+				</div>
+				@terminal(site.Terminal)
+			</div>
+			<figure class="pf-diagram" data-component="diagram" aria-label="Architecture diagram: JJ at the core, routing to each featured project, fed live by X and YouTube">
+				@diagramSVG(wideDiagram(page), page, "pf-diagram-wide")
+				@diagramSVG(tallDiagram(page), page, "pf-diagram-tall")
+				@telemetryBar()
+			</figure>
+		</div>
+	</section>
+}
+
+templ terminal(lines []string) {
+	<div class="pf-terminal" data-component="terminal" aria-label="Status of current projects">
+		<div class="pf-terminal-bar" aria-hidden="true"><span></span><span></span><span></span><em>~/jj — zsh</em></div>
+		<ol class="pf-terminal-body">
+			for index, line := range lines {
+				<li class={ "pf-terminal-line", templ.KV("pf-terminal-cmd", index == 0) }>{ line }</li>
+			}
+			<li class="pf-terminal-line pf-terminal-cmd" aria-hidden="true">$ <span class="pf-caret"></span></li>
+		</ol>
+	</div>
+}
+
+// telemetryBar is decoration: published numbers the script jitters around.
+templ telemetryBar() {
+	<figcaption class="pf-telemetry" data-component="telemetry" aria-hidden="true">
+		for _, readout := range heroTelemetry {
+			<span class="pf-readout">
+				<em>{ readout.Label }</em>
+				<strong data-telemetry data-base={ readout.Base } data-jitter={ readout.Jitter } data-decimals={ readout.Decimals }>{ readout.Value }</strong>
+				<small>{ readout.Unit }</small>
+			</span>
+		}
+		<span class="pf-readout-note">published benchmarks · jitter is decoration</span>
+	</figcaption>
+}

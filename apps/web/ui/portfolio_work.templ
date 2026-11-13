@@ -1,0 +1,83 @@
+package ui
+
+// Section 01, featured work: one card per content.Portfolio.Featured. A
+// card shows its Image when set, otherwise its generated glyph
+// (projectVisual in portfolio_visuals.templ).
+
+import (
+	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/static"
+)
+
+templ workSection(page apiclient.PortfolioPage) {
+	{{ section := page.Portfolio.Site.Sections.Work }}
+	<section id={ section.ID } class="pf-section" data-section="work" aria-labelledby={ section.ID + "-title" }>
+		<div class="pf-wrap">
+			@sectionHead(section)
+			<ol class="pf-work">
+				for index, project := range page.Portfolio.Featured {
+					@featuredCard(index, project)
+				}
+			</ol>
+		</div>
+	</section>
+}
+
+templ featuredCard(index int, project apiclient.Project) {
+	<li id={ project.Slug } class="pf-card" data-component="project-card" data-visual={ project.Visual } data-reveal>
+		<div class="pf-card-visual" aria-hidden="true">
+			if project.Image != "" {
+				<img src={ static.Image(project.Image) } alt="" loading="lazy" decoding="async"/>
+			} else {
+				@projectVisual(project.Visual)
+			}
+			<span class="pf-card-index">{ pad2(index) }</span>
+		</div>
+		<div class="pf-card-body">
+			<p class="pf-card-meta">{ project.Role }</p>
+			<h3 class="pf-card-title">{ project.Name }</h3>
+			<p class="pf-card-tagline">{ project.Tagline }</p>
+			<p class="pf-card-text">{ project.Description }</p>
+			if len(project.Highlights) > 0 {
+				<ul class="pf-highlights">
+					for _, highlight := range project.Highlights {
+						<li>{ highlight }</li>
+					}
+				</ul>
+			}
+			if len(project.Metrics) > 0 {
+				@metrics(project.Metrics)
+			}
+			@tags(project.Tags)
+			<p class="pf-card-links">
+				<a class="pf-button pf-button-primary" href={ templ.SafeURL(project.URL) } target="_blank" rel="noopener">{ host(project.URL) } <span aria-hidden="true">↗</span></a>
+				if project.Repo != "" && project.Repo != project.URL {
+					<a class="pf-button" href={ templ.SafeURL(project.Repo) } target="_blank" rel="noopener">Source <span aria-hidden="true">↗</span></a>
+				}
+			</p>
+		</div>
+	</li>
+}
+
+// metrics are published benchmark claims, each linked to its source.
+templ metrics(list []apiclient.Metric) {
+	<dl class="pf-metrics" data-component="metrics">
+		for _, metric := range list {
+			<div class="pf-metric">
+				<dt>{ metric.Label }</dt>
+				<dd>
+					<strong>{ metric.Value }</strong>
+					<a href={ templ.SafeURL(metric.Source) } target="_blank" rel="noopener" class="pf-source" aria-label={ "Source for " + metric.Value + ": " + metric.Label }>source ↗</a>
+				</dd>
+			</div>
+		}
+	</dl>
+}
+
+templ tags(list []string) {
+	<ul class="pf-tags" aria-label="Stack">
+		for _, tag := range list {
+			<li>{ tag }</li>
+		}
+	</ul>
+}

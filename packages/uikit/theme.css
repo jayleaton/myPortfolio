@@ -1,0 +1,54 @@
+/* Design tokens for every app. RE-THEME HERE: this is the only file to edit.
+   Each color is light-dark(<light>, <dark>). The pair is picked by the
+   effective color scheme, which base.css sets from <html class="light|dark">
+   (the theme cookie) or, with neither class, from prefers-color-scheme.
+   Keep text pairs at WCAG AA (4.5:1) and input borders/rings at 3:1 against
+   the surface they sit on; packages/uikit/README.md lists the pairs. */
+:root {
+  /* Page and panels */
+  --ui-background: light-dark(#eef3fb, #05070b);
+  --ui-foreground: light-dark(#0b1a33, #e6edf7);
+  --ui-surface: light-dark(#ffffff, #0b1018);
+  --ui-muted: light-dark(#e2eaf6, #111a26);
+  --ui-muted-foreground: light-dark(#44546f, #8b9bb4);
+  --ui-border: light-dark(#c9d6ea, #1b2433);
+  --ui-input: light-dark(#7d8ca6, #5d6b82);
+  --ui-ring: light-dark(#0b5cd5, #22d3ee);
+
+  /* Brand */
+  --ui-primary: light-dark(#0b5cd5, #22d3ee);
+  --ui-primary-foreground: light-dark(#ffffff, #03141a);
+  --ui-primary-hover: light-dark(#0948a8, #67e8f9);
+  --ui-accent: light-dark(#dce9fc, #08262e);
+  --ui-accent-foreground: light-dark(#0a3f8f, #a5f3fc);
+
+  /* Status: solid (buttons), soft (alerts, badges) */
+  --ui-danger: light-dark(#dc2626, #f87171);
+  --ui-danger-foreground: light-dark(#ffffff, #0b1120);
+  --ui-danger-soft: light-dark(#fef2f2, #2a1215);
+  --ui-danger-soft-foreground: light-dark(#991b1b, #fecaca);
+  --ui-danger-border: light-dark(#fecaca, #7f1d1d);
+  --ui-success: light-dark(#15803d, #4ade80);
+  --ui-success-foreground: light-dark(#ffffff, #052e16);
+  --ui-success-soft: light-dark(#f0fdf4, #0f2a1a);
+  --ui-success-soft-foreground: light-dark(#166534, #bbf7d0);
+  --ui-success-border: light-dark(#bbf7d0, #14532d);
+  --ui-warning: light-dark(#b45309, #fbbf24);
+  --ui-warning-foreground: light-dark(#ffffff, #1c1102);
+  --ui-warning-soft: light-dark(#fffbeb, #2a1e05);
+  --ui-warning-soft-foreground: light-dark(#92400e, #fde68a);
+  --ui-warning-border: light-dark(#fde68a, #78350f);
+  --ui-info-soft: light-dark(#f0f9ff, #0c2233);
+  --ui-info-soft-foreground: light-dark(#075985, #bae6fd);
+  --ui-info-border: light-dark(#bae6fd, #0c4a6e);
+
+  /* Shape and type */
+  --ui-radius-control: 0.5rem;
+  --ui-radius-card: 0.875rem;
+  --ui-shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.04);
+  --ui-shadow-popover: 0 10px 30px -10px rgb(15 23 42 / 0.25), 0 4px 10px -4px rgb(15 23 42 / 0.12);
+  --ui-font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
+  --ui-font-display: 'Space Grotesk', var(--ui-font-sans);
+  --ui-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}

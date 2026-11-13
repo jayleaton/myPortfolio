@@ -1,0 +1,33 @@
+package view
+
+// App-local components uikit does not have (yet). Keep them token-only (no
+// palette classes, no dark: variants) so they can be lifted into uikit as is.
+
+// Avatar is a round picture, or the name's initials when there is none.
+// class sets the size and text size (for example "size-12 text-base").
+templ Avatar(name, image, class string) {
+	if image != "" {
+		<img src={ image } alt="" class={ "shrink-0 rounded-full border border-border bg-muted object-cover", class }/>
+	} else {
+		<span aria-hidden="true" class={ "grid shrink-0 place-items-center rounded-full bg-accent font-semibold text-accent-foreground", class }>{ initials(name) }</span>
+	}
+}
+
+// CardFooter is the action row at the bottom of a padding-less Card: a
+// hairline above, actions on the right.
+templ CardFooter() {
+	<div class="flex flex-wrap items-center justify-end gap-3 rounded-b-card border-t border-border bg-muted/40 px-5 py-4 sm:px-6">
+		{ children... }
+	</div>
+}
+
+// AltLink is the centered "prompt + link" line under an auth form
+// ("Don't have an account? Sign up").
+templ AltLink(prompt, label, href string) {
+	<p class="text-center text-sm text-muted-foreground">
+		if prompt != "" {
+			{ prompt }
+		}
+		<a href={ templ.SafeURL(href) } class="font-medium text-primary underline-offset-4 hover:underline">{ label }</a>
+	</p>
+}
