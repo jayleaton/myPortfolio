@@ -1203,7 +1203,8 @@ func sectionHead(section apiclient.Section) templ.Component {
 }
 
 // portfolioFooter is the same small footer on every page: the name and
-// the page links. It follows the content.
+// the page links. It rests at the bottom of the window on a short page
+// (.pf-root in portfolio.css).
 func portfolioFooter(page apiclient.PortfolioPage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -1232,7 +1233,7 @@ func portfolioFooter(page apiclient.PortfolioPage) templ.Component {
 		var templ_7745c5c3_Var62 string
 		templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(page.Portfolio.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_page.templ`, Line: 230, Col: 124}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_page.templ`, Line: 231, Col: 124}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 		if templ_7745c5c3_Err != nil {
@@ -1250,7 +1251,7 @@ func portfolioFooter(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var63 templ.SafeURL
 			templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(item.Path))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_page.templ`, Line: 233, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_page.templ`, Line: 234, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 			if templ_7745c5c3_Err != nil {
@@ -1263,7 +1264,7 @@ func portfolioFooter(page apiclient.PortfolioPage) templ.Component {
 			var templ_7745c5c3_Var64 string
 			templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(item.Page.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_page.templ`, Line: 233, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `portfolio_page.templ`, Line: 234, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 			if templ_7745c5c3_Err != nil {
