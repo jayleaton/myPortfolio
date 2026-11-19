@@ -72,12 +72,13 @@ type Page struct {
 
 // Sections are the labels of the sections inside the pages: Work and
 // Receipts on the local AI page, Products and Network on the SaaS page,
-// Uplinks and Videos on the socials page.
+// Uplinks and Videos on the socials page, Links on the home page.
 type Sections struct {
-	Work, Receipts, Products, Network, Uplinks, Videos Section
+	Work, Receipts, Products, Network, Uplinks, Videos, Links Section
 }
 
-// Section is one section's anchor, number, title and one-line intro.
+// Section is one section's anchor, number (may be empty), title and
+// one-line intro.
 type Section struct {
 	ID, Number, Title, Intro string
 }

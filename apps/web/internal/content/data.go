@@ -140,13 +140,14 @@ var portfolio = Portfolio{
 		{Name: "SimplifiedQR", URL: "https://simplifiedqr.com", Description: "Create QR codes for links, WiFi, and contact cards, with PNG and SVG exports.", Image: "img/simplifiedqr.webp"},
 		{Name: "Simplified Images", URL: "https://simplifiedimg.com", Description: "Watermark and convert photos in your browser."},
 		{Name: "NiceRack", URL: "https://nicerack.cloud", Description: "AI hardware you own, with managed rack hosting and the option to take delivery."},
-		{Name: "BuildThings", URL: "https://buildthings.co", Description: "AI consulting, workflow automation, custom software, and private AI systems."},
+		{Name: "BuildThings", URL: "https://buildthings.co", Description: "My AI company: consulting, workflow automation, custom software, and private AI systems."},
 		{Name: "Build Things on YouTube", URL: "https://youtube.com/@build-things", Description: "My Build Things YouTube channel."},
 		{Name: "Pricemates", URL: "https://pricemates.net", Description: "Track prices and get discount alerts for 4×4 and camping gear.", Image: "img/pricemates.webp"},
 	},
 	Socials: []Link{
 		{Name: "X", URL: "https://x.com/jayleaton", Description: "Local AI, GPU recipes, and what I am building."},
 		{Name: "Buy Me a Coffee", URL: "https://buymeacoffee.com/jayleaton", Description: "Support my software and AI projects."},
+		{Name: "Ko-fi", URL: "https://ko-fi.com/jayleaton", Description: "Leave a tip to support the work."},
 		{Name: "LinkedIn", URL: "https://www.linkedin.com/in/jayj-eaton", Description: "My professional profile."},
 		{Name: "Upwork", URL: "https://www.upwork.com/freelancers/~01bb2932f2d3e396a6", Description: "Work with me through Upwork."},
 		{Name: "GitHub", URL: "https://github.com/jayleaton", Description: "My public code and model-serving recipes."},
@@ -267,6 +268,7 @@ var portfolio = Portfolio{
 			Network:  Section{ID: "network", Number: "02", Title: "Network", Intro: "Products and companies I run. Small, fast, useful."},
 			Uplinks:  Section{ID: "uplinks", Number: "01", Title: "Find me", Intro: "Follow along, hire me, or buy me a coffee."},
 			Videos:   Section{ID: "videos", Number: "02", Title: "Build Things", Intro: "I build in public on YouTube. The latest uploads, fetched live."},
+			Links:    Section{ID: "links", Title: "Elsewhere", Intro: "My code, my company, and a way to support the work."},
 		},
 	},
 	// FallbackVideos show until the first successful channel fetch.

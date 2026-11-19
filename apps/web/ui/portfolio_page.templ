@@ -3,8 +3,8 @@ package ui
 // The portfolio's shell and pages ("Measured"). portfolioShell is the
 // document every page shares: head (SEO, share card, font preload), the top
 // bar with the live X chip and both navs, and the footer. The pages:
-//   - HomePage "/": the name, a three-word hook and three doorway tiles,
-//     one per area of work, each with one figure.
+//   - HomePage "/": the name, a three-word hook, three doorway tiles,
+//     one per area of work, each with one figure, and the links elsewhere.
 //   - LocalAIPage: the stack figure, the engine, recipe and router cards
 //     with their evidence, and the receipts ledger.
 //   - SaaSPage: the product cards and the network of sites.
@@ -28,6 +28,7 @@ templ HomePage(page apiclient.PortfolioPage, meta ShareMeta) {
 	@portfolioShell(page, meta) {
 		@homeHero(page)
 		@doorways(page)
+		@homeLinks(page)
 	}
 }
 
@@ -210,7 +211,12 @@ templ pageHead(item apiclient.Page) {
 // the intro on the right.
 templ sectionHead(section apiclient.Section) {
 	<header class="pf-section-head">
-		<h2 id={ section.ID + "-title" } class="pf-section-title"><span class="pf-section-number pf-mono" aria-hidden="true">{ section.Number }</span>{ section.Title }</h2>
+		<h2 id={ section.ID + "-title" } class="pf-section-title">
+			if section.Number != "" {
+				<span class="pf-section-number pf-mono" aria-hidden="true">{ section.Number }</span>
+			}
+			{ section.Title }
+		</h2>
 		<p class="pf-section-intro">{ section.Intro }</p>
 	</header>
 }

@@ -74,6 +74,28 @@ templ doorways(page apiclient.PortfolioPage) {
 	</section>
 }
 
+// homeLinks are the home page's large links out, under the tiles: each
+// card names the site, its address and one line about it.
+templ homeLinks(page apiclient.PortfolioPage) {
+	{{ section := page.Portfolio.Site.Sections.Links }}
+	<section id={ section.ID } class="pf-section pf-outs-section" data-section="links" aria-labelledby={ section.ID + "-title" }>
+		<div class="pf-wrap">
+			@sectionHead(section)
+			<ul class="pf-outs">
+				for _, link := range linksOut(page) {
+					<li>
+						<a class="pf-out" data-component="home-link" href={ templ.SafeURL(link.URL) } target="_blank" rel="noopener noreferrer">
+							<span class="pf-out-top pf-mono"><span>{ host(link.URL) }</span><span class="pf-out-arrow" aria-hidden="true">↗</span></span>
+							<span class="pf-out-name">{ link.Name }</span>
+							<span class="pf-out-text">{ link.Description }</span>
+						</a>
+					</li>
+				}
+			</ul>
+		</div>
+	</section>
+}
+
 // doorway is one tile. Its link holds the page's number and name, the
 // figure with what it counts (children) and the names behind it, and
 // covers the whole tile at rest. The panel (more) is a sibling of that
