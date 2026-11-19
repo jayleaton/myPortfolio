@@ -277,6 +277,25 @@ func profileRows(links []apiclient.Link) []doorRow {
 	return out
 }
 
+// homeLinkNames are the home page's links out, in order, by name in the
+// socials or the network.
+var homeLinkNames = []string{"GitHub", "BuildThings", "Ko-fi"}
+
+// linksOut are the home page's links out; a name with no link is skipped.
+func linksOut(page apiclient.PortfolioPage) []apiclient.Link {
+	out := make([]apiclient.Link, 0, len(homeLinkNames))
+	for _, name := range homeLinkNames {
+		link := socialFor(page.Portfolio.Socials, name)
+		if link.URL == "" {
+			link = socialFor(page.Portfolio.Network, name)
+		}
+		if link.URL != "" {
+			out = append(out, link)
+		}
+	}
+	return out
+}
+
 // latestVideo is the newest upload the fetcher has, if any.
 func latestVideo(page apiclient.PortfolioPage) (apiclient.Video, bool) {
 	if len(page.Videos.Items) == 0 {

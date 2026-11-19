@@ -125,17 +125,6 @@ body.pf {
   line-height: var(--pf-leading);
   -webkit-font-smoothing: antialiased;
 }
-/* The shell is at least one window tall and the content takes the spare
-   height, so the footer rests at the bottom of the window on a short page
-   and follows the content on a long one. */
-.pf-root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-}
-.pf-root > main {
-  flex: 1 0 auto;
-}
 .pf a {
   color: inherit;
 }
@@ -703,6 +692,70 @@ a:hover > .pf-button-primary {
   border-top: 1px solid var(--pf-line);
   color: var(--pf-text);
   font-weight: 500;
+}
+
+/* Links out: the home page's large cards under the tiles. */
+.pf-section.pf-outs-section {
+  padding-block: 0 var(--pf-section-y);
+  border-bottom: 0;
+}
+.pf-outs {
+  display: grid;
+  gap: var(--pf-space-4);
+}
+.pf-outs li {
+  display: grid;
+}
+.pf-out {
+  display: grid;
+  align-content: start;
+  gap: var(--pf-space-3);
+  min-height: 10rem;
+  padding: var(--pf-space-4) var(--pf-space-5) var(--pf-space-5);
+  border: 1px solid var(--pf-line-strong);
+  background: var(--pf-surface);
+  text-decoration: none;
+  transition:
+    border-color var(--pf-fast),
+    background-color var(--pf-fast);
+}
+.pf-out:hover,
+.pf-out:focus-visible {
+  border-color: var(--pf-accent);
+  background: var(--pf-raised);
+}
+.pf-out-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-4);
+  color: var(--pf-faint);
+  overflow-wrap: anywhere;
+}
+.pf-out-arrow {
+  color: var(--pf-text);
+  font-size: var(--pf-size-lg);
+  transition: transform var(--pf-base) var(--pf-ease);
+}
+.pf-out:hover .pf-out-arrow,
+.pf-out:focus-visible .pf-out-arrow {
+  color: var(--pf-accent);
+  transform: translate(3px, -3px);
+}
+.pf-out-name {
+  margin-top: var(--pf-space-2);
+  font-family: var(--pf-font-display);
+  font-stretch: var(--pf-stretch-display);
+  font-size: var(--pf-size-2xl);
+  font-weight: 800;
+  line-height: 1;
+}
+.pf-out:hover .pf-out-name,
+.pf-out:focus-visible .pf-out-name {
+  color: var(--pf-accent);
+}
+.pf-out-text {
+  color: var(--pf-muted);
 }
 
 /* A tile's panel: more about its area, in rows. It is not rendered unless
@@ -1907,7 +1960,8 @@ a.pf-plate-project:hover .pf-plate-name {
   }
 }
 @media (min-width: 48rem) {
-  .pf-door-list {
+  .pf-door-list,
+  .pf-outs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .pf-card-top {
