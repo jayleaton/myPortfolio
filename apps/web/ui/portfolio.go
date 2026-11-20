@@ -15,6 +15,7 @@ import (
 
 	"github.com/jayleaton/myPortfolio/apps/web/internal/apiclient"
 	"github.com/jayleaton/myPortfolio/apps/web/internal/config"
+	"github.com/jayleaton/myPortfolio/apps/web/ui/routes"
 	"github.com/jayleaton/myPortfolio/apps/web/ui/static"
 )
 
@@ -90,24 +91,50 @@ func (ui *UI) liveFollowers(writer http.ResponseWriter, request *http.Request, _
 	}
 }
 
-// robots allows everything and points crawlers at the canonical origin.
-func (ui *UI) robots(writer http.ResponseWriter, _ *http.Request) {
+// origin returns the canonical site origin from PublicURL, or the request's
+// host when PublicURL is unset.
+func (ui *UI) origin(request *http.Request) string {
+	site := ui.site
+	if site == nil {
+		scheme := "http"
+		if request.TLS != nil {
+			scheme = "https"
+		}
+		site = &url.URL{Scheme: scheme, Host: request.Host}
+	}
+	return strings.TrimSuffix(site.String(), "/")
+}
+
+// robots allows everything and advertises the canonical sitemap.
+func (ui *UI) robots(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	writer.Header().Set("Cache-Control", "public, max-age=86400")
-	_, _ = fmt.Fprint(writer, "User-agent: *\nAllow: /\n")
+	_, _ = fmt.Fprint(writer, apiclient.RenderRobots(ui.origin(request), routes.Sitemap))
+}
+
+// sitemap lists every public portfolio page under the canonical origin.
+func (ui *UI) sitemap(writer http.ResponseWriter, request *http.Request) {
+	paths := []string{
+		config.AppRoutes.Home,
+		config.AppRoutes.SaaS,
+		config.AppRoutes.LocalAI,
+		config.AppRoutes.Socials,
+		config.AppRoutes.Archive,
+	}
+	body, err := apiclient.RenderSitemap(ui.origin(request), paths)
+	if err != nil {
+		ui.log.ErrorContext(request.Context(), "ui: sitemap", "err", err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	writer.Header().Set("Cache-Control", "public, max-age=86400")
+	_, _ = writer.Write(body)
 }
 
 // ShareMeta is what search engines and share cards (X, Open Graph) read
 // about the page at Path: its own title, description and canonical URL.
-type ShareMeta struct {
-	Path               string
-	Title, Description string
-	// ShareTitle and ShareText are the card's text.
-	ShareTitle, ShareText string
-	Canonical             string
-	Image                 string
-	XHandle               string
-}
+type ShareMeta = apiclient.ShareMeta
 
 // ogImageWidth and ogImageHeight are static.OGImageFile's size, the
 // summary_large_image card's 1.91:1.
@@ -118,30 +145,14 @@ const (
 
 // shareMeta is the metadata of the page at path. It builds absolute URLs
 // from PublicURL (share cards need them), or from the request's host when
-// it is unset. The home page uses the site's own title and card text; any
-// other page is named after its nav entry and described by its intro.
+// it is unset.
 func (ui *UI) shareMeta(request *http.Request, page apiclient.PortfolioPage, path string) ShareMeta {
-	origin := ui.site
-	if origin == nil {
-		scheme := "http"
-		if request.TLS != nil {
-			scheme = "https"
-		}
-		origin = &url.URL{Scheme: scheme, Host: request.Host}
+	items := navPages(page)
+	subpages := make([]apiclient.PageRoute, 0, len(items))
+	for _, item := range items {
+		subpages = append(subpages, apiclient.PageRoute{Path: item.Path, Page: item.Page})
 	}
-	base := strings.TrimSuffix(origin.String(), "/")
-	site := page.Portfolio.Site
-	meta := ShareMeta{
-		Path: path, Title: site.Title, Description: site.Description, ShareTitle: site.ShareTitle, ShareText: site.ShareText,
-		Canonical: base + path, Image: base + static.URL(static.OGImageFile), XHandle: page.Portfolio.XHandle,
-	}
-	for _, item := range navPages(page) {
-		if item.Path == path {
-			meta.Title = item.Page.Name + " · " + page.Portfolio.Name
-			meta.Description, meta.ShareTitle, meta.ShareText = item.Page.Intro, meta.Title, item.Page.Intro
-		}
-	}
-	return meta
+	return apiclient.BuildShareMeta(page.Portfolio, ui.origin(request), path, static.URL(static.OGImageFile), subpages)
 }
 
 // navItem is one page in the nav: where it lives and its copy.
@@ -635,28 +646,8 @@ func otherSocials(links []apiclient.Link) []apiclient.Link {
 	return out
 }
 
-// personLD is the page's schema.org Person (search results, link previews).
+// personLD is the page's schema.org Person (search results, link previews),
+// including every social profile plus the home page's featured external links.
 func personLD(page apiclient.PortfolioPage, meta ShareMeta) map[string]any {
-	sameAs := make([]string, 0, len(page.Portfolio.Socials))
-	for _, link := range page.Portfolio.Socials {
-		sameAs = append(sameAs, link.URL)
-	}
-	return map[string]any{
-		"@context":    "https://schema.org",
-		"@type":       "Person",
-		"name":        page.Portfolio.Name,
-		"url":         meta.Canonical,
-		"image":       meta.Image,
-		"description": page.Portfolio.Bio,
-		"sameAs":      sameAs,
-	}
-}
-
-// ogType is the page's Open Graph type: the home page is the person's
-// profile, the others are pages of the site.
-func ogType(meta ShareMeta) string {
-	if meta.Path == config.AppRoutes.Home {
-		return "profile"
-	}
-	return "website"
+	return apiclient.PersonLD(page.Portfolio, meta, linksOut(page))
 }

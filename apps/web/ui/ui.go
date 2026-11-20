@@ -98,10 +98,14 @@ func (ui *UI) Routes(mux Mux) {
 	mux.Handle("GET /favicon.ico", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		http.Redirect(writer, request, static.URL(static.FaviconFile), http.StatusMovedPermanently)
 	}))
+	mux.Handle("GET /apple-touch-icon.png", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		http.Redirect(writer, request, static.URL(static.AppleTouchIconFile), http.StatusMovedPermanently)
+	}))
 
 	ui.portfolioRoutes(page)
 	page(apiclient.Public, "GET "+routes.LiveFollowers, ui.liveFollowers)
 	mux.Handle("GET "+routes.Robots, http.HandlerFunc(ui.robots))
+	mux.Handle("GET "+routes.Sitemap, http.HandlerFunc(ui.sitemap))
 	if ui.features.AccountPages {
 		ui.accountRoutes(page, action)
 	}

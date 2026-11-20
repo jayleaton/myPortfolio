@@ -12,7 +12,7 @@ here: re-theme in `packages/uikit/theme.css`.
 | `portfolio*.go`, `portfolio_*.templ` | the public portfolio (design "Measured"): a one-screen overview at `/` and a page each at `/local-ai`, `/saas`, `/socials` and `/archive`, all rendered from the one `Portfolio` API call (`portfolioRoutes`); one templ file per area, the stack figure, bars and odometer in `portfolio_visuals.templ`, view helpers in `portfolio.go`, tokens and styles in `styles/portfolio.css`, the decode replay, odometer and menu in `static/portfolio.js` |
 | `ui/i18n` | `messages/{en,ja}.json`, locale negotiation, `i18n.T(ctx, key)` |
 | `ui/routes` | the UI's own action endpoints (logout, locale, live stream, settings, delete, static); pages use `config.AppRoutes` |
-| `ui/static` | embedded `app.css` (generated), pinned `datastar-1.0.4.js`, favicon, `portfolio.js`, `og.png`, `img/` and `fonts/` (Archivo and JetBrains Mono, Latin subsets, with their SIL OFL texts) |
+| `ui/static` | embedded `app.css` (generated), pinned `datastar-1.0.4.js`, brand icons (`favicon.ico`, `icon.svg`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`), `site.webmanifest`, `portfolio.js`, `og.png`, `img/` and `fonts/` (Archivo and JetBrains Mono, Latin subsets, with their SIL OFL texts) |
 | `ui/cmd/preview` | all pages on `0.0.0.0:3001` over an in-memory backend (`backend.go`) with the auth and service rules |
 
 ## Commands (for the Makefile)
