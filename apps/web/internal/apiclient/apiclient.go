@@ -114,6 +114,16 @@ type (
 	Videos        = services.Videos
 	Section       = services.Section
 	Page          = services.Page
+	ShareMeta     = services.ShareMeta
+	PageRoute     = services.PageRoute
+)
+
+// Portfolio SEO helpers, re-exported so the UI keeps metadata rules in services.
+var (
+	BuildShareMeta = services.BuildShareMeta
+	PersonLD       = services.PersonLD
+	RenderSitemap  = services.RenderSitemap
+	RenderRobots   = services.RenderRobots
 )
 
 // Inputs, validated by the API (Validate runs there, not in the UI).

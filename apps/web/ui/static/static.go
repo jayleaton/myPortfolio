@@ -28,8 +28,22 @@ const (
 	DatastarSHA256  = "727844adfc825ee651fb93c544a2a739986f9a21820a94524b35f0cac470cf91"
 )
 
-// FaviconFile is the original template's favicon, also served at /favicon.ico.
-const FaviconFile = "favicon.ico"
+// Brand icons and web app manifest, wired through URL for cache-busting.
+// FaviconFile and AppleTouchIconFile also have root redirects in ui.Routes.
+const (
+	FaviconFile        = "favicon.ico"
+	IconSVGFile        = "icon.svg"
+	AppleTouchIconFile = "apple-touch-icon.png"
+	Icon192File        = "icon-192.png"
+	Icon512File        = "icon-512.png"
+	ManifestFile       = "site.webmanifest"
+)
+
+func init() {
+	// Register types that minimal Linux images (distroless, no /etc/mime.types) omit.
+	_ = mime.AddExtensionType(".webmanifest", "application/manifest+json")
+	_ = mime.AddExtensionType(".ico", "image/x-icon")
+}
 
 // CSSFile is written by the Tailwind standalone CLI (see apps/web/ui/README.md).
 const CSSFile = "app.css"
@@ -53,7 +67,7 @@ const (
 // Image is the URL of an image under img/ (content.Project.Image).
 func Image(name string) string { return URL(name) }
 
-//go:embed app.css datastar-1.0.4.js favicon.ico portfolio.js og.png fonts img
+//go:embed app.css datastar-1.0.4.js favicon.ico icon.svg apple-touch-icon.png icon-192.png icon-512.png site.webmanifest portfolio.js og.png fonts img
 var FS embed.FS
 
 var versions = func() map[string]string {

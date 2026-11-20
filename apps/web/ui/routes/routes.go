@@ -17,5 +17,6 @@ const (
 	// LiveFollowers streams the portfolio's X follower count (SSE).
 	LiveFollowers = "/live/followers"
 	Robots        = "/robots.txt"
+	Sitemap       = "/sitemap.xml"
 	Static        = "/static/"
 )

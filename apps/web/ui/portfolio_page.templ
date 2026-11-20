@@ -105,6 +105,10 @@ templ portfolioShell(page apiclient.PortfolioPage, meta ShareMeta) {
 // when the script can release them, pf-decode ghosts the hero text for the
 // decode (never under prefers-reduced-motion).
 templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
+	<link rel="icon" href={ static.URL(static.IconSVGFile) } type="image/svg+xml"/>
+	<link rel="icon" href={ static.URL(static.Icon192File) } type="image/png" sizes="192x192"/>
+	<link rel="apple-touch-icon" href={ static.URL(static.AppleTouchIconFile) } sizes="180x180"/>
+	<link rel="manifest" href={ static.URL(static.ManifestFile) }/>
 	<link rel="preload" href={ static.URL(static.DisplayFontFile) } as="font" type="font/woff2" crossorigin/>
 	<script nonce={ templ.GetNonce(ctx) }>
 		document.documentElement.classList.add('pf-js');
@@ -114,12 +118,13 @@ templ portfolioHead(page apiclient.PortfolioPage, meta ShareMeta) {
 	<meta name="theme-color" content="#0b0c0e" media="(prefers-color-scheme: dark)"/>
 	<meta name="theme-color" content="#f4f2ec" media="(prefers-color-scheme: light)"/>
 	<meta name="author" content={ page.Portfolio.Name }/>
-	<meta property="og:type" content={ ogType(meta) }/>
+	<meta property="og:type" content={ meta.OGType }/>
 	<meta property="og:site_name" content={ page.Portfolio.Name }/>
 	<meta property="og:title" content={ meta.ShareTitle }/>
 	<meta property="og:description" content={ meta.ShareText }/>
 	<meta property="og:url" content={ meta.Canonical }/>
 	<meta property="og:image" content={ meta.Image }/>
+	<meta property="og:image:type" content="image/png"/>
 	<meta property="og:image:width" content={ itoa(ogImageWidth) }/>
 	<meta property="og:image:height" content={ itoa(ogImageHeight) }/>
 	<meta property="og:image:alt" content={ meta.ShareTitle }/>

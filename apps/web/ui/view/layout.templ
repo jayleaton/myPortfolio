@@ -65,6 +65,7 @@ templ SectionLayout(title string, current Section) {
 		CSS:         static.URL(static.CSSFile),
 		Script:      static.URL(static.DatastarFile),
 		Favicon:     static.URL(static.FaviconFile),
+		Head:        appIcons(),
 	}) {
 		@uikit.AppShell(uikit.Shell{
 			Brand:     AppName(state),
@@ -85,6 +86,15 @@ func brandHref(state State) string {
 		return config.AppRoutes.Dashboard
 	}
 	return config.AppRoutes.Home
+}
+
+templ appIcons() {
+	<link rel="icon" href={ static.URL(static.IconSVGFile) } type="image/svg+xml"/>
+	<link rel="icon" href={ static.URL(static.Icon192File) } type="image/png" sizes="192x192"/>
+	<link rel="apple-touch-icon" href={ static.URL(static.AppleTouchIconFile) } sizes="180x180"/>
+	<link rel="manifest" href={ static.URL(static.ManifestFile) }/>
+	<meta name="theme-color" content="#0b0c0e" media="(prefers-color-scheme: dark)"/>
+	<meta name="theme-color" content="#f4f2ec" media="(prefers-color-scheme: light)"/>
 }
 
 templ headerActions() {
